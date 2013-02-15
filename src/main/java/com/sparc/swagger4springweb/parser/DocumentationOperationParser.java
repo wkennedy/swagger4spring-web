@@ -37,7 +37,7 @@ public class DocumentationOperationParser {
             nickname = method.getName();
         }
         if (responseClass.isEmpty()) {
-            responseClass = method.getReturnType().getName();
+            responseClass = method.getReturnType().getSimpleName();
         }
 
         DocumentationOperation documentationOperation = new DocumentationOperation();

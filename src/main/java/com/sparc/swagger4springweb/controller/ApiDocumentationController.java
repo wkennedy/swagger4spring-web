@@ -19,7 +19,8 @@ public class ApiDocumentationController {
 
     public static final String CONTROLLER_MAPPING = "/api";
 
-    private String basePackage = "";
+    private String baseControllerPackage = "";
+    private String baseModelPackage = "";
     private String basePath = "";
     private String apiVersion = "v1";
     private Documentation resourceList;
@@ -48,13 +49,33 @@ public class ApiDocumentationController {
     }
 
     @SuppressWarnings("unused")
-    public String getBasePackage() {
-        return basePackage;
+    public String getBaseControllerPackage() {
+        return baseControllerPackage;
     }
 
     @SuppressWarnings("unused")
-    public void setBasePackage(String basePackage) {
-        this.basePackage = basePackage;
+    public void setBaseControllerPackage(String baseControllerPackage) {
+        this.baseControllerPackage = baseControllerPackage;
+    }
+
+    @SuppressWarnings("unused")
+    public String getBaseModelPackage() {
+        return baseModelPackage;
+    }
+
+    @SuppressWarnings("unused")
+    public void setBaseModelPackage(String baseModelPackage) {
+        this.baseModelPackage = baseModelPackage;
+    }
+
+    @SuppressWarnings("unused")
+    public Map<String, Documentation> getDocumentation() {
+        return documentation;
+    }
+
+    @SuppressWarnings("unused")
+    public void setDocumentation(Map<String, Documentation> documentation) {
+        this.documentation = documentation;
     }
 
     @SuppressWarnings("unused")
@@ -88,7 +109,7 @@ public class ApiDocumentationController {
 
     private Map<String, Documentation> getDocs() {
         if (this.documentation == null) {
-            ApiParser apiParser = new ApiParser(basePackage, getBasePath(), apiVersion);
+            ApiParser apiParser = new ApiParser(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
             this.documentation = apiParser.createDocuments();
         }
         return documentation;
@@ -96,7 +117,7 @@ public class ApiDocumentationController {
 
     private Documentation getResourceList() {
         if (this.resourceList == null) {
-            ApiParser apiParser = new ApiParser(basePackage, getBasePath(), apiVersion);
+            ApiParser apiParser = new ApiParser(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
             this.resourceList = apiParser.getResourceListing(getDocs());
         }
         return resourceList;

@@ -20,9 +20,8 @@ public class DocumentationParameterParser {
             if(annotatedParameter.getAnnotation() instanceof ApiParam) {
                 setDocumentationParameterByApiParam((ApiParam) annotatedParameter.getAnnotation(), documentationParameter);
             } else {
-                String dataType = annotatedParameter.getParameterType().getName();
-                String smallDataType = dataType.substring(dataType.lastIndexOf(".") + 1, dataType.length()).toLowerCase();
-                documentationParameter.setDataType(smallDataType);
+                String dataType = annotatedParameter.getParameterType().getSimpleName();
+                documentationParameter.setDataType(dataType);
                 documentationParameter.setName(annotatedParameter.getParameterName());
                 documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
             }

@@ -13,11 +13,20 @@ import java.util.Map;
 
 public class DocumentationSchemaParser {
 
-    public Map<String, DocumentationSchema> getResponseBodyDocumentationScehma(Method method) {
+    public Map<String, DocumentationSchema> getResponseBodyDocumentationSchema(Method method) {
         Map<String, DocumentationSchema> documentationSchemaMap = new HashMap<String, DocumentationSchema>();
         if(method.getAnnotation(ResponseBody.class) != null) {
-            ApiModelParser parser = new ApiModelParser(method.getReturnType());
-            documentationSchemaMap.put(method.getReturnType().getName(), parser.parse().toDocumentationSchema());
+            Class<?> returnType = method.getReturnType();
+            ApiModelParser parser;
+            String schemaName;
+            if(returnType.isArray()) {
+                parser = new ApiModelParser(returnType.getComponentType());
+                schemaName = returnType.getComponentType().getSimpleName();
+            } else {
+                parser = new ApiModelParser(method.getReturnType());
+                schemaName = returnType.getSimpleName();
+            }
+            documentationSchemaMap.put(schemaName, parser.parse().toDocumentationSchema());
         }
 
         return documentationSchemaMap;
@@ -30,7 +39,7 @@ public class DocumentationSchemaParser {
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
             Class<?> parameterType = annotatedParameter.getParameterType();
             ApiModelParser parser = new ApiModelParser(parameterType);
-            documentationSchemaMap.put(parameterType.getName(), parser.parse().toDocumentationSchema());
+            documentationSchemaMap.put(parameterType.getSimpleName(), parser.parse().toDocumentationSchema());
         }
 
         return documentationSchemaMap;

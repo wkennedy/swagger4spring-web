@@ -8,10 +8,14 @@ import java.lang.reflect.Method;
 
 public class DocumentationEndPointParser {
 
-    public DocumentationEndPoint getDocumentationEndPoint(Method method, String description) {
+    public DocumentationEndPoint getDocumentationEndPoint(Method method, String description, String resourcePath) {
         String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
         DocumentationEndPoint documentationEndPoint = new DocumentationEndPoint();
-        documentationEndPoint.setPath(requestMappingValue);
+        if (resourcePath != null && !resourcePath.isEmpty()) {
+            documentationEndPoint.setPath(resourcePath + requestMappingValue);
+        } else {
+            documentationEndPoint.setPath(requestMappingValue);
+        }
         documentationEndPoint.setDescription(description);
 
         return documentationEndPoint;
