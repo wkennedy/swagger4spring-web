@@ -1,4 +1,4 @@
-package com.sparc.knappsack.swagger;
+package com.sparc.swagger4springweb;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparc.swagger4springweb.parser.ApiParser;
@@ -18,8 +18,9 @@ public class ApiParserTest {
 
     @Test
     public void testParseControllerDocumentation() {
-        String basePackage = "com.sparc.knappsack.swagger.testController";
-        ApiParser apiParser = new ApiParser(basePackage, "http://localhost:8080/api", "v1");
+        String basePackage = "com.sparc.swagger4springweb.testController";
+        String baseModelPackage = "com.sparc.swagger4springweb.testModels";
+        ApiParser apiParser = new ApiParser(basePackage, baseModelPackage, "http://localhost:8080/api", "v1");
         Map<String, Documentation> documentList = apiParser.createDocuments();
         for (String key : documentList.keySet()) {
             Documentation documentation = documentList.get(key);
@@ -41,8 +42,9 @@ public class ApiParserTest {
 
     @Test
     public void testResourceListing() {
-        String basePackage = "com.sparc.knappsack.swagger.testController";
-        ApiParser apiParser = new ApiParser(basePackage, "http://localhost:8080/api", "v1");
+        String basePackage = "com.sparc.swagger4springweb.testController";
+        String baseModelPackage = "com.sparc.swagger4springweb.testModels";
+        ApiParser apiParser = new ApiParser(basePackage, baseModelPackage, "http://localhost:8080/api", "v1");
         Map<String, Documentation> documentList = apiParser.createDocuments();
         Documentation resourceList = apiParser.getResourceListing(documentList);
         assertTrue(resourceList.basePath().equals("http://localhost:8080/api"));

@@ -1,7 +1,7 @@
-package com.sparc.knappsack.swagger.testController;
+package com.sparc.swagger4springweb.testController;
 
 
-import com.sparc.knappsack.swagger.TestPojo;
+import com.sparc.swagger4springweb.testModels.TestPojo;
 import com.wordnik.swagger.annotations.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;

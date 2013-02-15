@@ -1,4 +1,4 @@
-package com.sparc.knappsack.swagger;
+package com.sparc.swagger4springweb.testModels;
 
 public class TestPojoChild {
     public long id;

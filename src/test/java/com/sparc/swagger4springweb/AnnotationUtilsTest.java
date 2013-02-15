@@ -1,4 +1,4 @@
-package com.sparc.knappsack.swagger;
+package com.sparc.swagger4springweb;
 
 import com.sparc.swagger4springweb.model.AnnotatedParameter;
 import com.sparc.swagger4springweb.util.AnnotationUtils;
@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 public class AnnotationUtilsTest extends AbstractTest {
@@ -61,6 +62,14 @@ public class AnnotationUtilsTest extends AbstractTest {
             assertTrue(annotatedParameter.getParameterName().equals("testVariable"));
             assertTrue(annotatedParameter.getParameterType().isAssignableFrom(String.class));
         }
+    }
+
+    @Test
+    public void testMethodHasNoApiParamAnnotation() throws NoSuchMethodException {
+        Class controllerClass = getControllerClass();
+        Method method = controllerClass.getMethod("getTestPojosNoSwaggerAnnotations", HttpServletRequest.class, String.class);
+        boolean hasApiParam = AnnotationUtils.hasApiParam(method);
+        assertFalse(hasApiParam);
     }
 
 }
