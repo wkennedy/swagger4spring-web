@@ -4,9 +4,32 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>swagger4spring-web</groupId>
+    <name>swagger4spring-web</name>
+    <groupId>com.sparc</groupId>
     <artifactId>swagger4spring-web</artifactId>
-    <version>0.1.0-BETA</version>
+    <packaging>jar</packaging>
+    <version>0.1.0-SNAPSHOT</version>
+    <description>Swagger implementation for the Spring-Web framework</description>
+    <url>https://github.com/wkennedy/swagger4spring-web</url>
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/wkennedy/swagger4spring-web</url>
+        <connection>scm:git:git@github.com:wkennedy/swagger4spring-web.git</connection>
+        <developerConnection>scm:git:git@github.com:wkennedy/swagger4spring-web.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <id>kennedyw</id>
+            <name>Will Kennedy</name>
+            <email>will.kennedy@sparcedge.com</email>
+        </developer>
+    </developers>
 
     <properties>
         <org.springframework-version>3.1.4.RELEASE</org.springframework-version>
@@ -51,6 +74,14 @@
                 <exclusion>
                     <artifactId>guava</artifactId>
                     <groupId>com.google.guava</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>paranamer</artifactId>
+                    <groupId>com.thoughtworks.paranamer</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
