@@ -7,9 +7,11 @@ import java.util.Set;
 
 public abstract class AbstractTest {
 
+    public static final String BASE_CONTROLLER_PACKAGE = "com.sparc.swagger4springweb.testController";
+    public static final String BASE_MODEL_PACKAGE = "com.sparc.swagger4springweb.testModels";
+
     public Class getControllerClass() {
-        String basePackage = "com.sparc.swagger4springweb.testController";
-        Reflections reflections = new Reflections(basePackage);
+        Reflections reflections = new Reflections(BASE_CONTROLLER_PACKAGE);
         Set<Class<?>> controllerClasses = reflections.getTypesAnnotatedWith(Controller.class);
 
         return controllerClasses.iterator().next();

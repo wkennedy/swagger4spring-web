@@ -2,6 +2,7 @@ package com.sparc.swagger4springweb;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparc.swagger4springweb.parser.ApiParser;
+import com.sparc.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.core.Documentation;
 import com.wordnik.swagger.core.DocumentationEndPoint;
 import com.wordnik.swagger.core.SwaggerSpec;
@@ -14,13 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class ApiParserTest {
+public class ApiParserTest extends AbstractTest {
 
     @Test
     public void testParseControllerDocumentation() {
-        String basePackage = "com.sparc.swagger4springweb.testController";
-        String baseModelPackage = "com.sparc.swagger4springweb.testModels";
-        ApiParser apiParser = new ApiParser(basePackage, baseModelPackage, "http://localhost:8080/api", "v1");
+        ApiParser apiParser = new ApiParserImpl(BASE_CONTROLLER_PACKAGE, BASE_MODEL_PACKAGE, "http://localhost:8080/api", "v1");
         Map<String, Documentation> documentList = apiParser.createDocuments();
         for (String key : documentList.keySet()) {
             Documentation documentation = documentList.get(key);
@@ -42,9 +41,7 @@ public class ApiParserTest {
 
     @Test
     public void testResourceListing() {
-        String basePackage = "com.sparc.swagger4springweb.testController";
-        String baseModelPackage = "com.sparc.swagger4springweb.testModels";
-        ApiParser apiParser = new ApiParser(basePackage, baseModelPackage, "http://localhost:8080/api", "v1");
+        ApiParser apiParser = new ApiParserImpl(BASE_CONTROLLER_PACKAGE, BASE_MODEL_PACKAGE, "http://localhost:8080/api", "v1");
         Map<String, Documentation> documentList = apiParser.createDocuments();
         Documentation resourceList = apiParser.getResourceListing(documentList);
         assertTrue(resourceList.basePath().equals("http://localhost:8080/api"));
