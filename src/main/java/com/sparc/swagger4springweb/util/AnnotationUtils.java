@@ -7,6 +7,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -90,6 +91,7 @@ public class AnnotationUtils {
                     break;
                 } else if (!hasApiParam(annotations) &&
                         (annotation instanceof RequestMapping ||
+                                annotation instanceof RequestParam ||
                                 annotation instanceof PathVariable ||
                                 annotation instanceof RequestBody)) {
                     AnnotatedParameter annotatedParameter = new AnnotatedParameter();
