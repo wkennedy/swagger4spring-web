@@ -1,6 +1,7 @@
 package com.sparc.swagger4springweb.controller;
 
 import com.sparc.swagger4springweb.parser.ApiParser;
+import com.sparc.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.core.Documentation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -109,7 +110,7 @@ public class ApiDocumentationController {
 
     private Map<String, Documentation> getDocs() {
         if (this.documentation == null) {
-            ApiParser apiParser = new ApiParser(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
+            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
             this.documentation = apiParser.createDocuments();
         }
         return documentation;
@@ -117,7 +118,7 @@ public class ApiDocumentationController {
 
     private Documentation getResourceList() {
         if (this.resourceList == null) {
-            ApiParser apiParser = new ApiParser(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
+            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
             this.resourceList = apiParser.getResourceListing(getDocs());
         }
         return resourceList;
