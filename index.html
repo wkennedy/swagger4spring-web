@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>swagger4spring-web by wkennedy</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>swagger4spring-web</h1>
+          <h2>A Swagger implementation for Spring-Web applications</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/wkennedy/swagger4spring-web/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/wkennedy/swagger4spring-web/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/wkennedy/swagger4spring-web" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>swagger4spring-web</h1>
+
+<p>This project aims at providing Swagger support to your Spring-Web based application.  It will attempt to document your API based on existing Spring-Web annotations if no Swagger annotations exist.  If Swagger annotations do exist, it will utilize those in conjunction with the Spring-Web annotations.</p>
+
+<h2>How-To</h2>
+
+<p>In order to use swagger4spring-web in your project, you need to declare an ApiDocumentationController bean in your
+servlet context.  For example:</p>
+
+<pre><code>    &lt;beans:bean id="documentationController" class="com.sparc.swagger4springweb.controller.ApiDocumentationController"
+            p:basePath="http://localhost:8080/yourapp"
+            p:baseControllerPackage="com.sparc.swagger4springweb.controllers.api"
+            p:baseModelPackage="com.sparc.swagger4springweb.models"
+            p:apiVersion="v1" /&gt;
+</code></pre>
+
+<ul>
+<li>basePath - optional - the base URL of your web application, for example http://localhost/swagger4spring-web-example</li>
+<li>baseControllerPackage - optional - this is the package you want swagger4spring-web to scan to look for classes annotated with @Controller.  If this is not set, all your packages are scanned.</li>
+<li>baseModelPackage - optional - this is the package you want to scan if all your model objects are in a specific directory.  These classes will be added to your documentation schema.  If no package is specified only certain return types and parameters are added to the documentation schema.</li>
+<li>apiVersion - required - this is the version of your API</li>
+</ul><p>Once the ApiDocumentionController is wired, you may call go to your base path + /api/resourceList (ex: http://localhost/swagger4spring-web-example/api/resourceList) in order to retrieve an inventory of your APIs.</p>
+
+<p>To see a working example, please take a look at <a href="https://github.com/wkennedy/swagger4spring-web-example/" title="swagger4spring-web-example">swagger4spring-web-example</a>.</p>
+
+<h2>Annotation Support</h2>
+
+<p>The following Spring-Web annotations are supported:</p>
+
+<ul>
+<li>@Controller</li>
+<li>@RequestMapping</li>
+<li>@ResponseBody</li>
+<li>@RequestBody</li>
+<li>@PathVariable</li>
+<li>@RequestParam</li>
+</ul><p>The following Swagger annotations are supported:</p>
+
+<ul>
+<li>@Api</li>
+<li>@ApiError</li>
+<li>@ApiErrors</li>
+<li>@ApiOperation</li>
+<li>@ApiParam</li>
+</ul><h2>External Links</h2>
+
+<p><a href="http://developers.helloreverb.com/swagger/" title="Swagger Home">Swagger Home</a></p>
+
+<p><a href="https://github.com/wordnik/swagger-core/wiki" title="Swagger Wiki">Swagger Wiki</a></p>
+
+<h2>License</h2>
+
+<p>Copyright (c) 2013 Will Kennedy</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+        </section>
+
+        <footer>
+          swagger4spring-web is maintained by <a href="https://github.com/wkennedy">wkennedy</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
