@@ -1,8 +1,8 @@
-package com.sparc.swagger4springweb;
+package com.knappsack.swagger4springweb;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparc.swagger4springweb.parser.ApiParser;
-import com.sparc.swagger4springweb.parser.ApiParserImpl;
+import com.knappsack.swagger4springweb.parser.ApiParser;
+import com.knappsack.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.core.Documentation;
 import com.wordnik.swagger.core.DocumentationEndPoint;
 import com.wordnik.swagger.core.SwaggerSpec;

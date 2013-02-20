@@ -1,7 +1,7 @@
-package com.sparc.swagger4springweb.testController;
+package com.knappsack.swagger4springweb.testController;
 
 
-import com.sparc.swagger4springweb.testModels.TestPojo;
+import com.knappsack.swagger4springweb.testModels.TestPojo;
 import com.wordnik.swagger.annotations.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +18,7 @@ import java.util.List;
 @Api(value = "Test operations", listingClass = "TestController", basePath = "/api/v1/test", description = "Operations for all tests")
 public class TestController {
 
-    @ApiOperation(value = "Find all test pojos", notes = "Get all test pojos for this test.", httpMethod = "GET", responseClass = "com.sparc.knappsack.swagger.TestPojo", multiValueResponse = true)
+    @ApiOperation(value = "Find all test pojos", notes = "Get all test pojos for this test.", httpMethod = "GET", responseClass = "TestPojo", multiValueResponse = true)
     @ApiError(code = 500, reason = "Process error")
     @RequestMapping(value = "/", method = RequestMethod.GET, produces = "application/json")
     public

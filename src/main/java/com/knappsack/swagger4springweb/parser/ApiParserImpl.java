@@ -1,6 +1,6 @@
-package com.sparc.swagger4springweb.parser;
+package com.knappsack.swagger4springweb.parser;
 
-import com.sparc.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.core.Documentation;
 import com.wordnik.swagger.core.DocumentationEndPoint;

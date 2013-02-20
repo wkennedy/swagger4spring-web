@@ -1,4 +1,4 @@
-package com.sparc.swagger4springweb.parser;
+package com.knappsack.swagger4springweb.parser;
 
 import com.wordnik.swagger.core.Documentation;
 

@@ -1,6 +1,6 @@
-package com.sparc.swagger4springweb.util;
+package com.knappsack.swagger4springweb.util;
 
-import com.sparc.swagger4springweb.model.AnnotatedParameter;
+import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
 import com.wordnik.swagger.annotations.ApiParam;

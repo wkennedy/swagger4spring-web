@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>swagger4spring-web</name>
-    <groupId>com.sparc</groupId>
+    <groupId>com.knappsack</groupId>
     <artifactId>swagger4spring-web</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0-SNAPSHOT</version>

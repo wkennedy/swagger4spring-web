@@ -8,10 +8,10 @@ This project aims at providing Swagger support to your Spring-Web based applicat
 In order to use swagger4spring-web in your project, you need to declare an ApiDocumentationController bean in your
 servlet context.  For example:
 
-        <beans:bean id="documentationController" class="com.sparc.swagger4springweb.controller.ApiDocumentationController"
+        <beans:bean id="documentationController" class="com.knappsack.swagger4springweb.controller.ApiDocumentationController"
                 p:basePath="http://localhost:8080/yourapp"
-                p:baseControllerPackage="com.sparc.swagger4springweb.controllers.api"
-                p:baseModelPackage="com.sparc.swagger4springweb.models"
+                p:baseControllerPackage="com.knappsack.swagger4springweb.controllers.api"
+                p:baseModelPackage="com.knappsack.swagger4springweb.models"
                 p:apiVersion="v1" />
 
 * basePath - optional - the base URL of your web application, for example http://localhost/swagger4spring-web-example

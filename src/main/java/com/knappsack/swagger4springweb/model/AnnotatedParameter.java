@@ -1,4 +1,4 @@
-package com.sparc.swagger4springweb.model;
+package com.knappsack.swagger4springweb.model;
 
 import java.lang.annotation.Annotation;
 

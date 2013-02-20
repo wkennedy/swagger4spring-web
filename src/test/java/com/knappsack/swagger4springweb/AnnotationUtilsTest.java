@@ -1,7 +1,7 @@
-package com.sparc.swagger4springweb;
+package com.knappsack.swagger4springweb;
 
-import com.sparc.swagger4springweb.model.AnnotatedParameter;
-import com.sparc.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.model.AnnotatedParameter;
+import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.junit.Test;
 import org.springframework.web.bind.annotation.PathVariable;

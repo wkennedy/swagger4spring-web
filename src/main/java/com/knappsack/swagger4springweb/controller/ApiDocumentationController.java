@@ -1,7 +1,7 @@
-package com.sparc.swagger4springweb.controller;
+package com.knappsack.swagger4springweb.controller;
 
-import com.sparc.swagger4springweb.parser.ApiParser;
-import com.sparc.swagger4springweb.parser.ApiParserImpl;
+import com.knappsack.swagger4springweb.parser.ApiParser;
+import com.knappsack.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.core.Documentation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
