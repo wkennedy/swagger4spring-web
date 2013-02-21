@@ -37,13 +37,22 @@
 
 <h2>How-To</h2>
 
+<p>To include swagger4spring-web in your project, you need to include the jar in your project.  If you use Maven, please include the following dependency:</p>
+
+<pre><code>    &lt;dependency&gt;
+        &lt;groupId&gt;com.knappsack&lt;/groupId&gt;
+        &lt;artifactId&gt;swagger4spring-web&lt;/artifactId&gt;
+        &lt;version&gt;0.1.2&lt;/version&gt;
+    &lt;/dependency&gt;
+</code></pre>
+
 <p>In order to use swagger4spring-web in your project, you need to declare an ApiDocumentationController bean in your
 servlet context.  For example:</p>
 
-<pre><code>    &lt;beans:bean id="documentationController" class="com.sparc.swagger4springweb.controller.ApiDocumentationController"
+<pre><code>    &lt;beans:bean id="documentationController" class="com.knappsack.swagger4springweb.controller.ApiDocumentationController"
             p:basePath="http://localhost:8080/yourapp"
-            p:baseControllerPackage="com.sparc.swagger4springweb.controllers.api"
-            p:baseModelPackage="com.sparc.swagger4springweb.models"
+            p:baseControllerPackage="com.knappsack.swagger4springweb.controllers.api"
+            p:baseModelPackage="com.knappsack.swagger4springweb.models"
             p:apiVersion="v1" /&gt;
 </code></pre>
 
