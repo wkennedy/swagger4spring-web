@@ -5,6 +5,15 @@ This project aims at providing Swagger support to your Spring-Web based applicat
 
 ##How-To
 
+To include swagger4spring-web in your project, you need to include the jar in your project.  If you use Maven, please include the following dependency:
+
+        <dependency>
+            <groupId>com.knappsack</groupId>
+            <artifactId>swagger4spring-web</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+
+
 In order to use swagger4spring-web in your project, you need to declare an ApiDocumentationController bean in your
 servlet context.  For example:
 
