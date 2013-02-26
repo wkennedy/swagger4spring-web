@@ -29,6 +29,7 @@ servlet context.  For example:
 * apiVersion - required - this is the version of your API
 
 Once the ApiDocumentionController is wired, you may call go to your base path + /api/resourceList (ex: http://localhost/swagger4spring-web-example/api/resourceList) in order to retrieve an inventory of your APIs.
+For an example JSP see this [page](https://github.com/wkennedy/swagger4spring-web-example/blob/master/src/main/webapp/WEB-INF/views/documentation.jsp)
 
 To see a working example, please take a look at [swagger4spring-web-example](https://github.com/wkennedy/swagger4spring-web-example/ "swagger4spring-web-example").
 
