@@ -44,7 +44,11 @@ public class ApiParserImpl implements ApiParser {
         Documentation resourceList = new Documentation(apiVersion, swaggerVersion, basePath, null);
         for (String key : documentationMap.keySet()) {
             DocumentationEndPoint endPoint = new DocumentationEndPoint();
-            endPoint.setPath("/api/doc" + key);
+            String docPath = "/api/doc";
+            if(!key.startsWith("/")) {
+                docPath = docPath + "/";
+            }
+            endPoint.setPath(docPath + key);
             endPoint.setDescription("");
             resourceList.addApi(endPoint);
         }
