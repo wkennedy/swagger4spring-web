@@ -29,22 +29,26 @@ public class ApiParserImpl implements ApiParser {
     private String baseControllerPackage = "";
     private String baseModelPackage = "";
     private String basePath = "";
+    private String servletPath = "/api";
     private String apiVersion = "v1";
 
     private final Map<String, Documentation> documents = new HashMap<String, Documentation>();
 
-    public ApiParserImpl(String baseControllerPackage, String baseModelPackage, String basePath, String apiVersion) {
+    public ApiParserImpl(String baseControllerPackage, String baseModelPackage, String basePath, String servletPath, String apiVersion) {
         this.baseControllerPackage = baseControllerPackage;
         this.baseModelPackage = baseModelPackage;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
+        if(servletPath != null && !servletPath.isEmpty()) {
+            this.servletPath = servletPath;
+        }
     }
 
     public Documentation getResourceListing(Map<String, Documentation> documentationMap) {
         Documentation resourceList = new Documentation(apiVersion, swaggerVersion, basePath, null);
         for (String key : documentationMap.keySet()) {
             DocumentationEndPoint endPoint = new DocumentationEndPoint();
-            String docPath = "/api/doc";
+            String docPath = servletPath + "/doc"; //"/api/doc";
             if(!key.startsWith("/")) {
                 docPath = docPath + "/";
             }

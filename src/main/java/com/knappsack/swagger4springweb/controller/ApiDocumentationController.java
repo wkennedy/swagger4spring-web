@@ -18,8 +18,6 @@ import java.util.Map;
 @RequestMapping(value = "/api")
 public class ApiDocumentationController {
 
-    public static final String CONTROLLER_MAPPING = "/api";
-
     private String baseControllerPackage = "";
     private String baseModelPackage = "";
     private String basePath = "";
@@ -30,8 +28,8 @@ public class ApiDocumentationController {
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    Documentation getResources() {
-        return getResourceList();
+    Documentation getResources(HttpServletRequest request) {
+        return getResourceList(request);
     }
 
     @RequestMapping(value = "/doc/**", method = RequestMethod.GET, produces = "application/json")
@@ -41,12 +39,12 @@ public class ApiDocumentationController {
         String handlerMappingPath = (String) request.getAttribute(
                 HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         //trim the operation request mapping from the desired value
-        String pathVariable = handlerMappingPath.replaceFirst("/api/doc", "");
-        if (getDocs() == null) {
+        handlerMappingPath = handlerMappingPath.substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
+        if (getDocs(request) == null) {
             return new Documentation();
         }
 
-        return getDocs().get(pathVariable);
+        return getDocs(request).get(handlerMappingPath);
     }
 
     @SuppressWarnings("unused")
@@ -86,8 +84,9 @@ public class ApiDocumentationController {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
                     .getRequestAttributes()).getRequest();
             if(request != null) {
+                String mapping = request.getServletPath();
                 basePath = request.getRequestURL().toString();
-                basePath = basePath.substring(0, basePath.indexOf(CONTROLLER_MAPPING));
+                basePath = basePath.substring(0, basePath.indexOf(mapping));
             }
         }
         return basePath;
@@ -108,18 +107,27 @@ public class ApiDocumentationController {
         this.apiVersion = apiVersion;
     }
 
-    private Map<String, Documentation> getDocs() {
+    private Map<String, Documentation> getDocs(HttpServletRequest request) {
         if (this.documentation == null) {
-            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
+            String servletPath = null;
+            if(request != null) {
+                servletPath = request.getServletPath();
+            }
+            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), servletPath, apiVersion);
             this.documentation = apiParser.createDocuments();
         }
         return documentation;
     }
 
-    private Documentation getResourceList() {
+    private Documentation getResourceList(HttpServletRequest request) {
         if (this.resourceList == null) {
-            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), apiVersion);
-            this.resourceList = apiParser.getResourceListing(getDocs());
+            String servletPath = null;
+            if(request != null) {
+                servletPath = request.getServletPath();
+                servletPath = servletPath.replace("/resourceList", "");
+            }
+            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), servletPath, apiVersion);
+            this.resourceList = apiParser.getResourceListing(getDocs(request));
         }
         return resourceList;
     }
