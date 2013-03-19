@@ -14,60 +14,62 @@ import java.util.List;
 
 public class DocumentationOperationParser {
 
-    public DocumentationOperation getDocumentationOperation(Method method) {
-        String httpMethod = "";
-        String nickname = "";
-        String responseClass = "";
-        //get ApiOperation information
-        ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
-        if (apiOperation != null) {
-            //apiOperationValue = apiOperation.value();
-            httpMethod = apiOperation.httpMethod();
-            //nickname = apiOperation.value();
-            responseClass = apiOperation.responseClass();
-        }
+	public DocumentationOperation getDocumentationOperation(Method method) {
 
-        RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
-        if (httpMethod.isEmpty()) {
-            for (RequestMethod requestMethod : methodRequestMapping.method()) {
-                httpMethod += requestMethod.name() + " ";
-            }
-        }
-        if (nickname.isEmpty()) {
-            nickname = method.getName();
-        }
-        if (responseClass.isEmpty()) {
-            responseClass = method.getReturnType().getSimpleName();
-        }
+		DocumentationOperation documentationOperation = new DocumentationOperation();
+		documentationOperation.setNickname(method.getName());// method name
+		documentationOperation.setResponseTypeInternal(method.getReturnType().getName());
+		documentationOperation.setResponseClass(method.getReturnType().getSimpleName());
 
-        DocumentationOperation documentationOperation = new DocumentationOperation();
-        documentationOperation.setHttpMethod(httpMethod);//GET POST
-        documentationOperation.setNickname(nickname);//method name
-        documentationOperation.setResponseClass(responseClass);//return type ex: CategoryModel
+		String httpMethod = "";
+		RequestMapping methodRequestMapping = method
+				.getAnnotation(RequestMapping.class);
+		if (httpMethod.isEmpty()) {
+			for (RequestMethod requestMethod : methodRequestMapping.method()) {
+				httpMethod += requestMethod.name() + " ";
+			}
+		}
+		// get ApiOperation information
+		ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
+		if (apiOperation != null) {
+			if (!apiOperation.httpMethod().isEmpty()) {
+				httpMethod = apiOperation.httpMethod();
+			}	
+			if (!(apiOperation.responseClass().isEmpty() || apiOperation
+					.responseClass().equals("void"))) {
+				documentationOperation.setResponseClass(apiOperation.responseClass());
+			}
+			documentationOperation.setSummary(apiOperation.value());
+			documentationOperation.setNotes(apiOperation.notes());
+		}
+		documentationOperation.setHttpMethod(httpMethod.trim());// GET POST		
+		
+		ApiError apiError = method.getAnnotation(ApiError.class);
+		if (apiError != null) {
+			addError(documentationOperation, apiError);
+		}
 
-        ApiError apiError = method.getAnnotation(ApiError.class);
-        if(apiError != null) {
-            DocumentationError documentationError = new DocumentationError();
-            documentationError.setCode(apiError.code());
-            documentationError.setReason(apiError.reason());
-            documentationOperation.addErrorResponse(documentationError);
-        }
+		ApiErrors apiErrors = method.getAnnotation(ApiErrors.class);
+		if (apiErrors != null) {
+			ApiError[] errors = apiErrors.value();
+			for (ApiError error : errors) {
+				addError(documentationOperation, error);
+			}
+		}
 
-        ApiErrors apiErrors = method.getAnnotation(ApiErrors.class);
-        if(apiErrors != null) {
-            ApiError[] errors = apiErrors.value();
-            for (ApiError error : errors) {
-                DocumentationError documentationError = new DocumentationError();
-                documentationError.setCode(error.code());
-                documentationError.setReason(error.reason());
-                documentationOperation.addErrorResponse(documentationError);
-            }
-        }
+		DocumentationParameterParser documentationParameterParser = new DocumentationParameterParser();
+		List<DocumentationParameter> documentationParameters = documentationParameterParser
+				.getDocumentationParams(method);
+		documentationOperation.setParameters(documentationParameters);
 
-        DocumentationParameterParser documentationParameterParser = new DocumentationParameterParser();
-        List<DocumentationParameter> documentationParameters = documentationParameterParser.getDocumentationParams(method);
-        documentationOperation.setParameters(documentationParameters);
+		return documentationOperation;
+	}
 
-        return documentationOperation;
-    }
+	private void addError(DocumentationOperation documentationOperation,
+			ApiError apiError) {
+		DocumentationError documentationError = new DocumentationError();
+		documentationError.setCode(apiError.code());
+		documentationError.setReason(apiError.reason());
+		documentationOperation.addErrorResponse(documentationError);
+	}
 }

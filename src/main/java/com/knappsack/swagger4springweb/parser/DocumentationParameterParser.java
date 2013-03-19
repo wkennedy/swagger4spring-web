@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ValueConstants;
 
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
@@ -35,10 +37,12 @@ public class DocumentationParameterParser {
 				if (annotation instanceof RequestParam) {
 					addRequestParams((RequestParam) annotation,
 							documentationParameter);
-				}
-				if (annotation instanceof RequestHeader) {
+				} else if (annotation instanceof RequestHeader) {
 					addRequestHeader((RequestHeader) annotation,
 							documentationParameter);
+				} else if (annotation instanceof RequestBody) {
+					addRequestBody((RequestBody) annotation,
+							documentationParameter, annotatedParameter.getParameterType());
 				}
 			}
 			// apply swagger annotations
@@ -89,7 +93,7 @@ public class DocumentationParameterParser {
 	}
 
 	private boolean isSet(String value) {
-		return value != null && !value.trim().isEmpty();
+		return value != null && !value.trim().isEmpty() && !value.equals(ValueConstants.DEFAULT_NONE);
 	}
 
 	private void addRequestHeader(RequestHeader requestParam,
@@ -102,6 +106,13 @@ public class DocumentationParameterParser {
 		}
 		documentationParameter.setRequired(requestParam.required());
 		documentationParameter.setParamType(ApiValues.TYPE_HEADER);
+	}
+
+	private void addRequestBody(RequestBody requestParam,
+			DocumentationParameter documentationParameter, Class<?> returnType) {
+		documentationParameter.setParamType(ApiValues.TYPE_BODY);
+		//TODO check auf collection type
+		documentationParameter.setDataType(returnType.getSimpleName());
 	}
 
 	private void addApiParams(ApiParam apiParam,
