@@ -1,9 +1,10 @@
 package com.knappsack.swagger4springweb.testModels;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.wordnik.swagger.annotations.ApiClass;
 import com.wordnik.swagger.annotations.ApiProperty;
-
-import java.util.List;
 
 @ApiClass(value = "TestPojo", description = "A basic pojo for testing API documentation")
 public class TestPojo {
@@ -15,7 +16,8 @@ public class TestPojo {
     @ApiProperty(value = "description", dataType = "String")
     private String description;
 
-    private List<TestPojoChild> children;
+    
+    private Collection<TestPojoChild> children;
 
     public long getId() {
         return id;
@@ -41,7 +43,7 @@ public class TestPojo {
         this.description = description;
     }
 
-    public List<TestPojoChild> getChildren() {
+    public Collection<TestPojoChild> getChildren() {
         return children;
     }
 
