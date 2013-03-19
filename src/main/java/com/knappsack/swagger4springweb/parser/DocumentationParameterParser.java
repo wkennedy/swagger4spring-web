@@ -7,6 +7,7 @@ import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.core.DocumentationAllowableListValues;
 import com.wordnik.swagger.core.DocumentationParameter;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -65,6 +66,8 @@ public class DocumentationParameterParser {
             return "int";
         }  else if(Float.class.isAssignableFrom(parameterType)) {
             return "float";
+        } else if(MultipartFile.class.isAssignableFrom(parameterType)) {
+            return "file";
         } else if (Number.class.isAssignableFrom(parameterType)) {
 			return "double";
 		}
@@ -110,7 +113,11 @@ public class DocumentationParameterParser {
 			documentationParameter.setDefaultValue(requestParam.defaultValue());
 		}
 		documentationParameter.setRequired(requestParam.required());
-		documentationParameter.setParamType(ApiValues.TYPE_QUERY);
+        if("file".equals(documentationParameter.getDataType())) {
+            documentationParameter.setParamType(ApiValues.TYPE_FORM);
+        } else {
+            documentationParameter.setParamType(ApiValues.TYPE_QUERY);
+        }
 	}
 
 	private boolean isSet(String value) {
@@ -133,9 +140,8 @@ public class DocumentationParameterParser {
 			DocumentationParameter documentationParameter) {
 		if (isSet(apiParam.allowableValues())) {
 			// we use only one simple string
-			documentationParameter
-					.setAllowableValues(new DocumentationAllowableListValues(
-							Arrays.asList(apiParam.allowableValues())));
+            List<String> allowableValues = Arrays.asList(apiParam.allowableValues().split("\\s*,\\s*"));
+			documentationParameter.setAllowableValues(new DocumentationAllowableListValues(allowableValues));
 		}
 		documentationParameter.setAllowMultiple(apiParam.allowMultiple());
 
