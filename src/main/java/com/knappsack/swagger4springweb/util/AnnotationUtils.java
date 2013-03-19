@@ -1,15 +1,11 @@
 package com.knappsack.swagger4springweb.util;
 
+import com.google.common.collect.Lists;
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
 import com.wordnik.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import scala.actors.threadpool.Arrays;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -96,7 +92,7 @@ public class AnnotationUtils {
 				AnnotatedParameter annotatedParameter = new AnnotatedParameter();
 				annotatedParameter.setParameterType(parameterType);
 				annotatedParameter.setParameterName(parameterName);
-				annotatedParameter.addAnnotations(Arrays.asList(annotations));
+                annotatedParameter.addAnnotations(Lists.newArrayList(annotations));
 				annotatedParameters.add(annotatedParameter);
 			}
 			i++;

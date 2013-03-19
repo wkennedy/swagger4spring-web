@@ -1,21 +1,18 @@
 package com.knappsack.swagger4springweb.parser;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.core.DocumentationAllowableListValues;
 import com.wordnik.swagger.core.DocumentationParameter;
+import org.springframework.web.bind.annotation.*;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DocumentationParameterParser {
 
@@ -32,14 +29,7 @@ public class DocumentationParameterParser {
 			documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
 			// apply default values from spring annotations first
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
-				if (annotation instanceof RequestParam) {
-					addRequestParams((RequestParam) annotation,
-							documentationParameter);
-				}
-				if (annotation instanceof RequestHeader) {
-					addRequestHeader((RequestHeader) annotation,
-							documentationParameter);
-				}
+				addSpringParams(annotation, documentationParameter);
 			}
 			// apply swagger annotations
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
@@ -65,16 +55,51 @@ public class DocumentationParameterParser {
 		// Date
 		if (String.class.isAssignableFrom(parameterType)) {
 			return "string";
-		} else if (Date.class.isAssignableFrom(parameterType)) {
-			return "Date";
 		} else if (Boolean.class.isAssignableFrom(parameterType)) {
 			return "boolean";
-		} else if (Number.class.isAssignableFrom(parameterType)) {
+		} else if(Byte.class.isAssignableFrom(parameterType)) {
+            return "byte";
+        }  else if(Long.class.isAssignableFrom(parameterType)) {
+            return "long";
+        }  else if(Integer.class.isAssignableFrom(parameterType)) {
+            return "int";
+        }  else if(Float.class.isAssignableFrom(parameterType)) {
+            return "float";
+        } else if (Number.class.isAssignableFrom(parameterType)) {
 			return "double";
 		}
 		// others
-		return "byte";
+		return parameterType.getSimpleName();
 	}
+
+    private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter) {
+        if (annotation instanceof RequestParam) {
+            addRequestParams((RequestParam) annotation, documentationParameter);
+        }
+        if (annotation instanceof RequestHeader) {
+            addRequestHeader((RequestHeader) annotation, documentationParameter);
+        }
+        if(annotation instanceof RequestBody) {
+            addRequestBody(documentationParameter);
+        }
+        if(annotation instanceof PathVariable) {
+            addPathVariable((PathVariable) annotation, documentationParameter);
+        }
+    }
+
+    private void addRequestBody(DocumentationParameter documentationParameter) {
+        documentationParameter.setRequired(true);
+        documentationParameter.setParamType(ApiValues.TYPE_BODY);
+    }
+
+    private void addPathVariable(PathVariable pathVariable, DocumentationParameter documentationParameter) {
+        if (isSet(pathVariable.value())) {
+            documentationParameter.setName(pathVariable.value());
+        }
+
+        documentationParameter.setRequired(true);
+        documentationParameter.setParamType(ApiValues.TYPE_PATH);
+    }
 
 	private void addRequestParams(RequestParam requestParam,
 			DocumentationParameter documentationParameter) {
@@ -85,11 +110,11 @@ public class DocumentationParameterParser {
 			documentationParameter.setDefaultValue(requestParam.defaultValue());
 		}
 		documentationParameter.setRequired(requestParam.required());
-		documentationParameter.setParamType(ApiValues.TYPE_PATH);
+		documentationParameter.setParamType(ApiValues.TYPE_QUERY);
 	}
 
 	private boolean isSet(String value) {
-		return value != null && !value.trim().isEmpty();
+		return value != null && !value.trim().isEmpty() && !ValueConstants.DEFAULT_NONE.equals(value);
 	}
 
 	private void addRequestHeader(RequestHeader requestParam,
@@ -110,8 +135,7 @@ public class DocumentationParameterParser {
 			// we use only one simple string
 			documentationParameter
 					.setAllowableValues(new DocumentationAllowableListValues(
-							Arrays.asList(new String[] { apiParam
-									.allowableValues() })));
+							Arrays.asList(apiParam.allowableValues())));
 		}
 		documentationParameter.setAllowMultiple(apiParam.allowMultiple());
 
