@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -45,7 +47,7 @@ public class AnnotationUtilsTest extends AbstractTest {
         List<AnnotatedParameter> annotatedParameters = AnnotationUtils.getAnnotatedParameters(method);
         assertTrue(annotatedParameters.size() == 1);
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
-            assertTrue(annotatedParameter.getAnnotation() instanceof ApiParam);
+            assertTrue(listContainsType(annotatedParameter.getAnnotations(), ApiParam.class));
             assertTrue(annotatedParameter.getParameterName().equals("testVariable"));
             assertTrue(annotatedParameter.getParameterType().isAssignableFrom(String.class));
         }
@@ -58,13 +60,23 @@ public class AnnotationUtilsTest extends AbstractTest {
         List<AnnotatedParameter> annotatedParameters = AnnotationUtils.getAnnotatedParameters(method);
         assertTrue(annotatedParameters.size() == 1);
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
-            assertTrue(annotatedParameter.getAnnotation() instanceof PathVariable);
+            assertTrue(listContainsType(annotatedParameter.getAnnotations(),  PathVariable.class));
             assertTrue(annotatedParameter.getParameterName().equals("testVariable"));
             assertTrue(annotatedParameter.getParameterType().isAssignableFrom(String.class));
         }
     }
 
-    @Test
+    private boolean listContainsType(List<Annotation> annotations,
+			Class<? extends Annotation> clazz) {
+    	for (Annotation annotation : annotations) {
+    		if (clazz.isAssignableFrom(annotation.getClass())) {
+    			return true;
+    		}
+    	}
+    	return false;
+	}
+
+	@Test
     public void testMethodHasNoApiParamAnnotation() throws NoSuchMethodException {
         Class controllerClass = getControllerClass();
         Method method = controllerClass.getMethod("getTestPojosNoSwaggerAnnotations", HttpServletRequest.class, String.class);
