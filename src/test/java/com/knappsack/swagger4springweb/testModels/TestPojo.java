@@ -16,7 +16,6 @@ public class TestPojo {
     @ApiProperty(value = "description", dataType = "String")
     private String description;
 
-    
     private Collection<TestPojoChild> children;
 
     public long getId() {
