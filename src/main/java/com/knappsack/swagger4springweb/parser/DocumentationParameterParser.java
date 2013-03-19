@@ -117,15 +117,15 @@ public class DocumentationParameterParser {
 		return value != null && !value.trim().isEmpty() && !ValueConstants.DEFAULT_NONE.equals(value);
 	}
 
-	private void addRequestHeader(RequestHeader requestParam,
+	private void addRequestHeader(RequestHeader requestHeader,
 			DocumentationParameter documentationParameter) {
-		if (isSet(requestParam.value())) {
-			documentationParameter.setName(requestParam.value());
+		if (isSet(requestHeader.value())) {
+			documentationParameter.setName(requestHeader.value());
 		}
-		if (isSet(requestParam.defaultValue())) {
-			documentationParameter.setDefaultValue(requestParam.defaultValue());
+		if (isSet(requestHeader.defaultValue())) {
+			documentationParameter.setDefaultValue(requestHeader.defaultValue());
 		}
-		documentationParameter.setRequired(requestParam.required());
+		documentationParameter.setRequired(requestHeader.required());
 		documentationParameter.setParamType(ApiValues.TYPE_HEADER);
 	}
 
