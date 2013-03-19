@@ -1,12 +1,14 @@
 package com.knappsack.swagger4springweb.model;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnnotatedParameter {
 
     private String parameterName;
     private Class<?> parameterType;
-    private Annotation annotation;
+    private List<Annotation> annotations = new ArrayList<Annotation>();
 
     public String getParameterName() {
         return parameterName;
@@ -24,11 +26,15 @@ public class AnnotatedParameter {
         this.parameterType = parameterType;
     }
 
-    public Annotation getAnnotation() {
-        return annotation;
+    public List<Annotation> getAnnotations() {
+        return annotations;
     }
 
-    public void setAnnotation(Annotation annotation) {
-        this.annotation = annotation;
+    public void addAnnotation(Annotation annotation) {
+        this.annotations.add(annotation);
     }
+
+	public void addAnnotations(List<Annotation> annotations) {
+        this.annotations.addAll(annotations);
+	}
 }
