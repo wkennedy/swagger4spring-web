@@ -1,19 +1,25 @@
 package com.knappsack.swagger4springweb.parser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ValueConstants;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.core.DocumentationAllowableListValues;
 import com.wordnik.swagger.core.DocumentationParameter;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class DocumentationParameterParser {
 
@@ -30,7 +36,7 @@ public class DocumentationParameterParser {
 			documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
 			// apply default values from spring annotations first
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
-				addSpringParams(annotation, documentationParameter);
+				addSpringParams(annotation, documentationParameter, annotatedParameter.getParameterType());
 			}
 			// apply swagger annotations
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
@@ -75,7 +81,7 @@ public class DocumentationParameterParser {
 		return parameterType.getSimpleName();
 	}
 
-    private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter) {
+    private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter, Class<?> returnType) {
         if (annotation instanceof RequestParam) {
             addRequestParams((RequestParam) annotation, documentationParameter);
         }
@@ -83,16 +89,11 @@ public class DocumentationParameterParser {
             addRequestHeader((RequestHeader) annotation, documentationParameter);
         }
         if(annotation instanceof RequestBody) {
-            addRequestBody(documentationParameter);
+            addRequestBody((RequestBody)annotation, documentationParameter, returnType);
         }
         if(annotation instanceof PathVariable) {
             addPathVariable((PathVariable) annotation, documentationParameter);
         }
-    }
-
-    private void addRequestBody(DocumentationParameter documentationParameter) {
-        documentationParameter.setRequired(true);
-        documentationParameter.setParamType(ApiValues.TYPE_BODY);
     }
 
     private void addPathVariable(PathVariable pathVariable, DocumentationParameter documentationParameter) {
@@ -134,6 +135,17 @@ public class DocumentationParameterParser {
 		}
 		documentationParameter.setRequired(requestHeader.required());
 		documentationParameter.setParamType(ApiValues.TYPE_HEADER);
+	}
+
+	private void addRequestBody(RequestBody requestParam,
+			DocumentationParameter documentationParameter, Class<?> returnType) {
+		documentationParameter.setParamType(ApiValues.TYPE_BODY);
+		//TODO check for collection type
+//		if (returnType.isArray()) {
+//	        returnType.getComponentType();		    
+//		}
+		documentationParameter.setDataType(returnType.getSimpleName());
+		documentationParameter.setRequired(true);
 	}
 
 	private void addApiParams(ApiParam apiParam,
