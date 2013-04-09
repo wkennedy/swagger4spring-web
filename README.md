@@ -10,7 +10,7 @@ To include swagger4spring-web in your project, you need to include the jar in yo
         <dependency>
             <groupId>com.knappsack</groupId>
             <artifactId>swagger4spring-web</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.5</version>
         </dependency>
 
 
