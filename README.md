@@ -10,7 +10,7 @@ To include swagger4spring-web in your project, you need to include the jar in yo
         <dependency>
             <groupId>com.knappsack</groupId>
             <artifactId>swagger4spring-web</artifactId>
-            <version>0.1.5</version>
+            <version>0.1.6</version>
         </dependency>
 
 
@@ -77,6 +77,8 @@ The following Swagger annotations are supported:
 
 [Swagger Wiki](https://github.com/wordnik/swagger-core/wiki "Swagger Wiki")
 
+##Change Log
+https://github.com/wkennedy/swagger4spring-web/wiki/Change-Log
 
 ##License
 Copyright (c) 2013 Will Kennedy
