@@ -13,6 +13,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class DocumentationParameterParser {
@@ -25,10 +26,10 @@ public class DocumentationParameterParser {
 			DocumentationParameter documentationParameter = new DocumentationParameter();
 			// default values from the Method
 			documentationParameter.setDataType(getSwaggerTypeFor(annotatedParameter.getParameterType()));
-			documentationParameter.setName(annotatedParameter
-					.getParameterName());
+			documentationParameter.setName(annotatedParameter.getParameterName());
 			documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
-			// apply default values from spring annotations first
+            documentationParameter.setAllowMultiple(isAllowMultiple(annotatedParameter.getParameterType()));
+            // apply default values from spring annotations first
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
 				addSpringParams(annotation, documentationParameter);
 			}
@@ -45,6 +46,10 @@ public class DocumentationParameterParser {
 	}
 
 	private String getSwaggerTypeFor(Class<?> parameterType) {
+        Class type = parameterType;
+        if(parameterType.isArray()) {
+            type = type.getComponentType();
+        }
 		// swagger types are 
 		// byte             
 		// boolean
@@ -54,25 +59,25 @@ public class DocumentationParameterParser {
 		// double
 		// string
 		// Date
-		if (String.class.isAssignableFrom(parameterType)) {
+		if (String.class.isAssignableFrom(type)) {
 			return "string";
-		} else if (Boolean.class.isAssignableFrom(parameterType)) {
+		} else if (Boolean.class.isAssignableFrom(type)) {
 			return "boolean";
-		} else if(Byte.class.isAssignableFrom(parameterType)) {
+		} else if(Byte.class.isAssignableFrom(type)) {
             return "byte";
-        }  else if(Long.class.isAssignableFrom(parameterType)) {
+        }  else if(Long.class.isAssignableFrom(type)) {
             return "long";
-        }  else if(Integer.class.isAssignableFrom(parameterType)) {
+        }  else if(Integer.class.isAssignableFrom(type)) {
             return "int";
-        }  else if(Float.class.isAssignableFrom(parameterType)) {
+        }  else if(Float.class.isAssignableFrom(type)) {
             return "float";
-        } else if(MultipartFile.class.isAssignableFrom(parameterType)) {
+        } else if(MultipartFile.class.isAssignableFrom(type)) {
             return "file";
-        } else if (Number.class.isAssignableFrom(parameterType)) {
+        } else if (Number.class.isAssignableFrom(type)) {
 			return "double";
 		}
 		// others
-		return parameterType.getSimpleName();
+		return type.getSimpleName();
 	}
 
     private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter) {
@@ -163,4 +168,8 @@ public class DocumentationParameterParser {
 			documentationParameter.setRequired(apiParam.required());
 		}
 	}
+
+    private boolean isAllowMultiple(Class parameterType) {
+        return parameterType != null && (parameterType.isArray() || Collection.class.isAssignableFrom(parameterType));
+    }
 }
