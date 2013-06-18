@@ -1,5 +1,6 @@
 package com.knappsack.swagger4springweb.parser;
 
+import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.core.Documentation;
@@ -17,29 +18,29 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class ApiParserImpl implements ApiParser {
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
-    private String baseControllerPackage = "";
-    private String baseModelPackage = "";
+    //    private String baseControllerPackage = "";
+    private List<String> controllerPackages = new ArrayList<String>();
+    //    private String baseModelPackage = "";
+    private List<String> modelPackages = new ArrayList<String>();
     private String basePath = "";
     private String servletPath = "/api";
     private String apiVersion = "v1";
 
     private final Map<String, Documentation> documents = new HashMap<String, Documentation>();
 
-    public ApiParserImpl(String baseControllerPackage, String baseModelPackage, String basePath, String servletPath, String apiVersion) {
-        this.baseControllerPackage = baseControllerPackage;
-        this.baseModelPackage = baseModelPackage;
+    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath, String apiVersion) {
+        this.controllerPackages = baseControllerPackage;
+        this.modelPackages = baseModelPackage;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
-        if(servletPath != null && !servletPath.isEmpty()) {
+        if (servletPath != null && !servletPath.isEmpty()) {
             this.servletPath = servletPath;
         }
     }
@@ -49,7 +50,7 @@ public class ApiParserImpl implements ApiParser {
         for (String key : documentationMap.keySet()) {
             DocumentationEndPoint endPoint = new DocumentationEndPoint();
             String docPath = servletPath + "/doc"; //"/api/doc";
-            if(!key.startsWith("/")) {
+            if (!key.startsWith("/")) {
                 docPath = docPath + "/";
             }
             endPoint.setPath(docPath + key);
@@ -60,8 +61,12 @@ public class ApiParserImpl implements ApiParser {
     }
 
     public Map<String, Documentation> createDocuments() {
-        Reflections reflections = new Reflections(baseControllerPackage);
-        Set<Class<?>> controllerClasses = reflections.getTypesAnnotatedWith(Controller.class);
+        Set<Class<?>> controllerClasses = new HashSet<Class<?>>();
+        for (String controllerPackage : controllerPackages) {
+            Reflections reflections = new Reflections(controllerPackage);
+            controllerClasses.addAll(reflections.getTypesAnnotatedWith(Controller.class));
+
+        }
 
         return processControllers(controllerClasses);
     }
@@ -69,6 +74,9 @@ public class ApiParserImpl implements ApiParser {
     private Map<String, Documentation> processControllers(Set<Class<?>> controllerClasses) {
         //Loop over end points (controllers)
         for (Class<?> controllerClass : controllerClasses) {
+            if (controllerClass.isAssignableFrom(ApiDocumentationController.class)) {
+                continue;
+            }
 
             Documentation documentation = processControllerDocumentation(controllerClass);
             String description = "";
@@ -80,7 +88,7 @@ public class ApiParserImpl implements ApiParser {
             //Loop over operations 'methods'
             Set<Method> requestMappingMethods = Reflections.getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
             processMethods(requestMappingMethods, documentation, description);
-            if (baseModelPackage != null && !baseModelPackage.isEmpty()) {
+            if (modelPackages != null && !modelPackages.isEmpty()) {
                 createDocumentationSchemas(documentation);
             }
 
@@ -144,22 +152,24 @@ public class ApiParserImpl implements ApiParser {
     }
 
     private void createDocumentationSchemas(Documentation documentation) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(baseModelPackage)))
-                .setUrls(ClasspathHelper.forPackage(baseModelPackage))
-                .setScanners(new SubTypesScanner(false), new ResourcesScanner()));
-        Set<Class<? extends Object>> allModelClasses = reflections.getSubTypesOf(Object.class);
-        for (Class<? extends Object> clazz : allModelClasses) {
-            ApiModelParser parser;
-            String schemaName;
-            if (clazz.isArray()) {
-                parser = new ApiModelParser(clazz.getComponentType());
-                schemaName = clazz.getComponentType().getSimpleName();
-            } else {
-                parser = new ApiModelParser(clazz);
-                schemaName = clazz.getSimpleName();
+        for (String modelPackage : modelPackages) {
+            Reflections reflections = new Reflections(new ConfigurationBuilder()
+                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(modelPackage)))
+                    .setUrls(ClasspathHelper.forPackage(modelPackage))
+                    .setScanners(new SubTypesScanner(false), new ResourcesScanner()));
+            Set<Class<? extends Object>> allModelClasses = reflections.getSubTypesOf(Object.class);
+            for (Class<? extends Object> clazz : allModelClasses) {
+                ApiModelParser parser;
+                String schemaName;
+                if (clazz.isArray()) {
+                    parser = new ApiModelParser(clazz.getComponentType());
+                    schemaName = clazz.getComponentType().getSimpleName();
+                } else {
+                    parser = new ApiModelParser(clazz);
+                    schemaName = clazz.getSimpleName();
+                }
+                documentation.addModel(schemaName, parser.parse().toDocumentationSchema());
             }
-            documentation.addModel(schemaName, parser.parse().toDocumentationSchema());
         }
     }
 }

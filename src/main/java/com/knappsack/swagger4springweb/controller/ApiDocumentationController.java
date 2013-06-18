@@ -12,6 +12,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -19,7 +21,9 @@ import java.util.Map;
 public class ApiDocumentationController {
 
     private String baseControllerPackage = "";
+    private List<String> additionalControllerPackages = new ArrayList<String>();
     private String baseModelPackage = "";
+    private List<String> additionalModelPackages = new ArrayList<String>();
     private String basePath = "";
     private String apiVersion = "v1";
     private Documentation resourceList;
@@ -58,6 +62,16 @@ public class ApiDocumentationController {
     }
 
     @SuppressWarnings("unused")
+    public List<String> getAdditionalControllerPackages() {
+        return additionalControllerPackages;
+    }
+
+    @SuppressWarnings("unused")
+    public void setAdditionalControllerPackages(List<String> additionalControllerPackages) {
+        this.additionalControllerPackages = additionalControllerPackages;
+    }
+
+    @SuppressWarnings("unused")
     public String getBaseModelPackage() {
         return baseModelPackage;
     }
@@ -65,6 +79,16 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setBaseModelPackage(String baseModelPackage) {
         this.baseModelPackage = baseModelPackage;
+    }
+
+    @SuppressWarnings("unused")
+    public List<String> getAdditionalModelPackages() {
+        return additionalModelPackages;
+    }
+
+    @SuppressWarnings("unused")
+    public void setAdditionalModelPackages(List<String> additionalModelPackages) {
+        this.additionalModelPackages = additionalModelPackages;
     }
 
     @SuppressWarnings("unused")
@@ -113,7 +137,7 @@ public class ApiDocumentationController {
             if(request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), servletPath, apiVersion);
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion);
             this.documentation = apiParser.createDocuments();
         }
         return documentation;
@@ -126,7 +150,7 @@ public class ApiDocumentationController {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(baseControllerPackage, baseModelPackage, getBasePath(), servletPath, apiVersion);
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion);
             this.resourceList = apiParser.getResourceListing(getDocs(request));
         }
         return resourceList;
@@ -135,5 +159,31 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setResourceList(Documentation resourceList) {
         this.resourceList = resourceList;
+    }
+
+    private List<String> getControllerPackages() {
+        List<String> controllerPackages = new ArrayList<String>();
+        if(baseControllerPackage != null && !baseControllerPackage.isEmpty()) {
+            controllerPackages.add(baseControllerPackage);
+        }
+
+        if(additionalControllerPackages != null && !additionalControllerPackages.isEmpty()) {
+            controllerPackages.addAll(additionalControllerPackages);
+        }
+
+        return controllerPackages;
+    }
+
+    private List<String> getModelPackages() {
+        List<String> modelPackages = new ArrayList<String>();
+        if(baseModelPackage != null && !baseModelPackage.isEmpty()) {
+            modelPackages.add(baseModelPackage);
+        }
+
+        if(additionalModelPackages != null && !additionalModelPackages.isEmpty()) {
+            modelPackages.addAll(additionalModelPackages);
+        }
+
+        return modelPackages;
     }
 }
