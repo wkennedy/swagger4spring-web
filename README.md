@@ -26,6 +26,8 @@ servlet context.  For example:
 * basePath - optional - the base URL of your web application, for example http://localhost/swagger4spring-web-example
 * baseControllerPackage - optional - this is the package you want swagger4spring-web to scan to look for classes annotated with @Controller.  If this is not set, all your packages are scanned.
 * baseModelPackage - optional - this is the package you want to scan if all your model objects are in a specific directory.  These classes will be added to your documentation schema.  If no package is specified only certain return types and parameters are added to the documentation schema.
+* additionalControllerPackage - optional - if you have more packages with controllers outside of the baseControllerPackage, specify them here.
+* additionalModelPackage - optional - if you have packages outside of the baseModelPackage that you want to scan for models, specify them here.
 * apiVersion - required - this is the version of your API
 
 Once the ApiDocumentationController is wired, you may call go to your base path + /api/resourceList (ex: http://localhost/swagger4spring-web-example/api/resourceList) in order to retrieve an inventory of your APIs.  For an example JSP see this [page](https://github.com/wkennedy/swagger4spring-web-example/blob/master/src/main/webapp/WEB-INF/views/documentation.jsp).
