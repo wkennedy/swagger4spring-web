@@ -32,12 +32,14 @@ public class ApiParserImpl implements ApiParser {
     private String basePath = "";
     private String servletPath = "/api";
     private String apiVersion = "v1";
+    private List<String> ignorableAnnotations;
 
     private final Map<String, Documentation> documents = new HashMap<String, Documentation>();
 
-    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath, String apiVersion) {
+    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath, String apiVersion, List<String> ignorableAnnotations) {
         this.controllerPackages = baseControllerPackage;
         this.modelPackages = baseModelPackage;
+        this.ignorableAnnotations = ignorableAnnotations;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
         if (servletPath != null && !servletPath.isEmpty()) {
@@ -133,7 +135,7 @@ public class ApiParserImpl implements ApiParser {
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
             DocumentationEndPoint documentationEndPoint = endPointMap.get(value);
 
-            DocumentationOperationParser documentationOperationParser = new DocumentationOperationParser();
+            DocumentationOperationParser documentationOperationParser = new DocumentationOperationParser(ignorableAnnotations);
             DocumentationOperation documentationOperation = documentationOperationParser.getDocumentationOperation(method);
             documentationEndPoint.addOperation(documentationOperation);
 
@@ -142,7 +144,6 @@ public class ApiParserImpl implements ApiParser {
             for (String key : documentationSchemaMap.keySet()) {
                 documentation.addModel(key, documentationSchemaMap.get(key));
             }
-
 
             Map<String, DocumentationSchema> parameterDocumentationSchemaMap = documentationSchemaParser.getParameterDocumentationSchema(method);
             for (String key : parameterDocumentationSchemaMap.keySet()) {

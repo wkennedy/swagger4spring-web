@@ -10,9 +10,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DocumentationOperationParser {
+
+    private List<String> ignorableAnnotations;
+
+    public DocumentationOperationParser() {
+        ignorableAnnotations = new ArrayList<String>();
+    }
+
+    public DocumentationOperationParser(List<String> ignorableAnnotations) {
+        this.ignorableAnnotations = ignorableAnnotations;
+    }
 
     public DocumentationOperation getDocumentationOperation(Method method) {
 
@@ -57,7 +68,7 @@ public class DocumentationOperationParser {
             }
         }
 
-        DocumentationParameterParser documentationParameterParser = new DocumentationParameterParser();
+        DocumentationParameterParser documentationParameterParser = new DocumentationParameterParser(ignorableAnnotations);
         List<DocumentationParameter> documentationParameters = documentationParameterParser
                 .getDocumentationParams(method);
         documentationOperation.setParameters(documentationParameters);

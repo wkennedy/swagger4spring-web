@@ -18,11 +18,24 @@ import java.util.List;
 
 public class DocumentationParameterParser {
 
-	public List<DocumentationParameter> getDocumentationParams(Method method) {
+    private List<String> ignorableAnnotations;
+
+    public DocumentationParameterParser() {
+        ignorableAnnotations = new ArrayList<String>();
+    }
+
+    public DocumentationParameterParser(List<String> ignorableAnnotations) {
+        this.ignorableAnnotations = ignorableAnnotations;
+    }
+
+    public List<DocumentationParameter> getDocumentationParams(Method method) {
 		List<DocumentationParameter> documentationParameters = new ArrayList<DocumentationParameter>();
 		List<AnnotatedParameter> annotatedParameters = AnnotationUtils
 				.getAnnotatedParameters(method);
 		for (AnnotatedParameter annotatedParameter : annotatedParameters) {
+            if(hasIgnorableAnnotations(annotatedParameter.getAnnotations())) {
+               continue;
+            }
 			DocumentationParameter documentationParameter = new DocumentationParameter();
 			// default values from the Method
 			documentationParameter.setDataType(getSwaggerTypeFor(annotatedParameter.getParameterType()));
@@ -171,5 +184,14 @@ public class DocumentationParameterParser {
 
     private boolean isAllowMultiple(Class parameterType) {
         return parameterType != null && (parameterType.isArray() || Collection.class.isAssignableFrom(parameterType));
+    }
+
+    private boolean hasIgnorableAnnotations(List<Annotation> annotations) {
+        for(Annotation annotation : annotations) {
+            if(ignorableAnnotations.contains(annotation.annotationType().getCanonicalName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

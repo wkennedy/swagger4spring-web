@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ApiParserTest extends AbstractTest {
 
@@ -25,7 +23,7 @@ public class ApiParserTest extends AbstractTest {
         controllerPackage.add(BASE_CONTROLLER_PACKAGE);
         List<String> modelPackage = new ArrayList<String>();
         modelPackage.add(BASE_MODEL_PACKAGE);
-        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1");
+        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>());
         Map<String, Documentation> documentList = apiParser.createDocuments();
         for (String key : documentList.keySet()) {
             Documentation documentation = documentList.get(key);
@@ -51,7 +49,7 @@ public class ApiParserTest extends AbstractTest {
         controllerPackage.add(BASE_CONTROLLER_PACKAGE);
         List<String> modelPackage = new ArrayList<String>();
         modelPackage.add(BASE_MODEL_PACKAGE);
-        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1");
+        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>());
         Map<String, Documentation> documentList = apiParser.createDocuments();
         Documentation resourceList = apiParser.getResourceListing(documentList);
         assertTrue(resourceList.basePath().equals("http://localhost:8080/api"));
