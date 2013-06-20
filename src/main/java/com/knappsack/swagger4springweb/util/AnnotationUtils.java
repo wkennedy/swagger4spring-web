@@ -58,7 +58,7 @@ public class AnnotationUtils {
 	public static String getMethodRequestMappingValue(Method method) {
 		RequestMapping requestMapping = method
 				.getAnnotation(RequestMapping.class);
-		String requestMappingValue = "/";
+		String requestMappingValue = "";
 		if (requestMapping != null) {
 			String[] requestMappingValues = requestMapping.value();
 			if (requestMappingValues != null && requestMappingValues.length > 0) {
