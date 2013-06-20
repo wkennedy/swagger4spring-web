@@ -34,7 +34,7 @@ public class AnnotationUtilsTest extends AbstractTest {
         Class controllerClass = getControllerClass();
         try {
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(controllerClass.getMethod("getTestPojos", HttpServletRequest.class, String.class));
-            assertEquals(requestMappingValue, "/");
+            assertEquals(requestMappingValue, "");
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
