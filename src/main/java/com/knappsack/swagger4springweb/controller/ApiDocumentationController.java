@@ -28,6 +28,8 @@ public class ApiDocumentationController {
     private String apiVersion = "v1";
     private Documentation resourceList;
     private Map<String, Documentation> documentation;
+    private List<String> ignorableAnnotations = new ArrayList<String>();
+
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -137,7 +139,7 @@ public class ApiDocumentationController {
             if(request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion);
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion, ignorableAnnotations);
             this.documentation = apiParser.createDocuments();
         }
         return documentation;
@@ -150,7 +152,7 @@ public class ApiDocumentationController {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion);
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion, ignorableAnnotations);
             this.resourceList = apiParser.getResourceListing(getDocs(request));
         }
         return resourceList;
@@ -185,5 +187,13 @@ public class ApiDocumentationController {
         }
 
         return modelPackages;
+    }
+
+    public List<String> getIgnorableAnnotations() {
+        return ignorableAnnotations;
+    }
+
+    public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
+        this.ignorableAnnotations = ignorableAnnotations;
     }
 }
