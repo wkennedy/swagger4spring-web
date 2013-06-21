@@ -115,12 +115,20 @@ public class ApiParserImpl implements ApiParser {
                 resourcePath = controllerClass.getName();
             }
         }
+        
+        //Allow for multiple controllers having the same resource path.
+        if (documents.containsKey(resourcePath)){
+           return documents.get(resourcePath);
+        }
 
         return new Documentation(apiVersion, swaggerVersion, basePath, resourcePath);
     }
 
     private void processMethods(Set<Method> methods, Documentation documentation, String description) {
         Map<String, DocumentationEndPoint> endPointMap = new HashMap<String, DocumentationEndPoint>();
+        
+        populateEndpointMapForDocumentation(documentation, endPointMap);
+        
         for (Method method : methods) {
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
             DocumentationEndPointParser documentationEndPointParser = new DocumentationEndPointParser();
@@ -150,6 +158,14 @@ public class ApiParserImpl implements ApiParser {
                 documentation.addModel(key, parameterDocumentationSchemaMap.get(key));
             }
         }
+    }
+    
+    private void populateEndpointMapForDocumentation(Documentation documentation, Map<String, DocumentationEndPoint> endPointMap){
+       if (documentation.getApis() != null){
+          for (DocumentationEndPoint endpoint : documentation.getApis()){
+             endPointMap.put(endpoint.getPath(), endpoint);
+          }
+       }
     }
 
     private void createDocumentationSchemas(Documentation documentation) {
