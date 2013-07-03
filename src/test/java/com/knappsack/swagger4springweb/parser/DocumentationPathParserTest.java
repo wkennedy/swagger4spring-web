@@ -1,7 +1,3 @@
-/**
- * Copyright (C) 2013 AlertMe.com Ltd
- */
-
 package com.knappsack.swagger4springweb.parser;
 
 import com.wordnik.swagger.core.ApiValues;
@@ -13,10 +9,6 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Author: andrey.antonov
- * Date: 7/3/13
- */
 public class DocumentationPathParserTest {
 
     @Test
