@@ -76,7 +76,7 @@ public class ApiParserImpl implements ApiParser {
     private Map<String, Documentation> processControllers(Set<Class<?>> controllerClasses) {
         //Loop over end points (controllers)
         for (Class<?> controllerClass : controllerClasses) {
-            if (controllerClass.isAssignableFrom(ApiDocumentationController.class)) {
+            if (ApiDocumentationController.class.isAssignableFrom(controllerClass)) {
                 continue;
             }
 
