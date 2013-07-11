@@ -23,7 +23,8 @@ public class ApiParserTest extends AbstractTest {
         controllerPackage.add(BASE_CONTROLLER_PACKAGE);
         List<String> modelPackage = new ArrayList<String>();
         modelPackage.add(BASE_MODEL_PACKAGE);
-        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>());
+        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api",
+                "v1", new ArrayList<String>(), true);
         Map<String, Documentation> documentList = apiParser.createDocuments();
         for (String key : documentList.keySet()) {
             Documentation documentation = documentList.get(key);
@@ -42,14 +43,14 @@ public class ApiParserTest extends AbstractTest {
         }
     }
 
-
     @Test
     public void testResourceListing() {
         List<String> controllerPackage = new ArrayList<String>();
         controllerPackage.add(BASE_CONTROLLER_PACKAGE);
         List<String> modelPackage = new ArrayList<String>();
         modelPackage.add(BASE_MODEL_PACKAGE);
-        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>());
+        ApiParser apiParser = new ApiParserImpl(controllerPackage, modelPackage, "http://localhost:8080/api", "/api",
+                "v1", new ArrayList<String>(), true);
         Map<String, Documentation> documentList = apiParser.createDocuments();
         Documentation resourceList = apiParser.getResourceListing(documentList);
         assertTrue(resourceList.basePath().equals("http://localhost:8080/api"));
