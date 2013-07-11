@@ -26,10 +26,10 @@ public class ApiDocumentationController {
     private List<String> additionalModelPackages = new ArrayList<String>();
     private String basePath = "";
     private String apiVersion = "v1";
-    private Documentation resourceList;
     private Map<String, Documentation> documentation;
     private List<String> ignorableAnnotations = new ArrayList<String>();
-
+    private boolean ignoreUnusedPathVariables = true;
+    private Documentation resourceList;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -46,11 +46,13 @@ public class ApiDocumentationController {
                 HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         //trim the operation request mapping from the desired value
         handlerMappingPath = handlerMappingPath.substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
-        if (getDocs(request) == null) {
+
+        Map<String, Documentation> docs = getDocs(request);
+        if (docs == null) {
             return new Documentation();
         }
 
-        return getDocs(request).get(handlerMappingPath);
+        return docs.get(handlerMappingPath);
     }
 
     @SuppressWarnings("unused")
@@ -139,8 +141,9 @@ public class ApiDocumentationController {
             if(request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion, ignorableAnnotations);
-            this.documentation = apiParser.createDocuments();
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
+            documentation = apiParser.createDocuments();
         }
         return documentation;
     }
@@ -152,8 +155,9 @@ public class ApiDocumentationController {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(), servletPath, apiVersion, ignorableAnnotations);
-            this.resourceList = apiParser.getResourceListing(getDocs(request));
+            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
+            resourceList = apiParser.getResourceListing(getDocs(request));
         }
         return resourceList;
     }
@@ -195,5 +199,13 @@ public class ApiDocumentationController {
 
     public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
         this.ignorableAnnotations = ignorableAnnotations;
+    }
+
+    public boolean isIgnoreUnusedPathVariables() {
+        return ignoreUnusedPathVariables;
+    }
+
+    public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
+        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
     }
 }

@@ -2,18 +2,17 @@ package com.knappsack.swagger4springweb.parser;
 
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.util.DocumentationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.core.DocumentationAllowableListValues;
 import com.wordnik.swagger.core.DocumentationParameter;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class DocumentationParameterParser {
@@ -38,10 +37,10 @@ public class DocumentationParameterParser {
             }
 			DocumentationParameter documentationParameter = new DocumentationParameter();
 			// default values from the Method
-			documentationParameter.setDataType(getSwaggerTypeFor(annotatedParameter.getParameterType()));
+			documentationParameter.setDataType(DocumentationUtils.getSwaggerTypeFor(annotatedParameter.getParameterType()));
 			documentationParameter.setName(annotatedParameter.getParameterName());
 			documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
-            documentationParameter.setAllowMultiple(isAllowMultiple(annotatedParameter.getParameterType()));
+            documentationParameter.setAllowMultiple(DocumentationUtils.isAllowMultiple(annotatedParameter.getParameterType()));
             // apply default values from spring annotations first
 			for (Annotation annotation : annotatedParameter.getAnnotations()) {
 				addSpringParams(annotation, documentationParameter);
@@ -56,41 +55,6 @@ public class DocumentationParameterParser {
 		}
 
 		return documentationParameters;
-	}
-
-	private String getSwaggerTypeFor(Class<?> parameterType) {
-        Class type = parameterType;
-        if(parameterType.isArray()) {
-            type = type.getComponentType();
-        }
-		// swagger types are 
-		// byte             
-		// boolean
-		// int
-		// long
-		// float
-		// double
-		// string
-		// Date
-		if (String.class.isAssignableFrom(type)) {
-			return "string";
-		} else if (Boolean.class.isAssignableFrom(type)) {
-			return "boolean";
-		} else if(Byte.class.isAssignableFrom(type)) {
-            return "byte";
-        }  else if(Long.class.isAssignableFrom(type)) {
-            return "long";
-        }  else if(Integer.class.isAssignableFrom(type)) {
-            return "int";
-        }  else if(Float.class.isAssignableFrom(type)) {
-            return "float";
-        } else if(MultipartFile.class.isAssignableFrom(type)) {
-            return "file";
-        } else if (Number.class.isAssignableFrom(type)) {
-			return "double";
-		}
-		// others
-		return type.getSimpleName();
 	}
 
     private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter) {
@@ -114,7 +78,7 @@ public class DocumentationParameterParser {
     }
 
     private void addPathVariable(PathVariable pathVariable, DocumentationParameter documentationParameter) {
-        if (isSet(pathVariable.value())) {
+        if (DocumentationUtils.isSet(pathVariable.value())) {
             documentationParameter.setName(pathVariable.value());
         }
 
@@ -124,10 +88,10 @@ public class DocumentationParameterParser {
 
 	private void addRequestParams(RequestParam requestParam,
 			DocumentationParameter documentationParameter) {
-		if (isSet(requestParam.value())) {
+		if (DocumentationUtils.isSet(requestParam.value())) {
 			documentationParameter.setName(requestParam.value());
 		}
-		if (isSet(requestParam.defaultValue())) {
+		if (DocumentationUtils.isSet(requestParam.defaultValue())) {
 			documentationParameter.setDefaultValue(requestParam.defaultValue());
 		}
 		documentationParameter.setRequired(requestParam.required());
@@ -138,16 +102,12 @@ public class DocumentationParameterParser {
         }
 	}
 
-	private boolean isSet(String value) {
-		return value != null && !value.trim().isEmpty() && !ValueConstants.DEFAULT_NONE.equals(value);
-	}
-
 	private void addRequestHeader(RequestHeader requestHeader,
 			DocumentationParameter documentationParameter) {
-		if (isSet(requestHeader.value())) {
+		if (DocumentationUtils.isSet(requestHeader.value())) {
 			documentationParameter.setName(requestHeader.value());
 		}
-		if (isSet(requestHeader.defaultValue())) {
+		if (DocumentationUtils.isSet(requestHeader.defaultValue())) {
 			documentationParameter.setDefaultValue(requestHeader.defaultValue());
 		}
 		documentationParameter.setRequired(requestHeader.required());
@@ -156,21 +116,21 @@ public class DocumentationParameterParser {
 
 	private void addApiParams(ApiParam apiParam,
 			DocumentationParameter documentationParameter) {
-		if (isSet(apiParam.allowableValues())) {
+		if (DocumentationUtils.isSet(apiParam.allowableValues())) {
 			// we use only one simple string
             List<String> allowableValues = Arrays.asList(apiParam.allowableValues().split("\\s*,\\s*"));
 			documentationParameter.setAllowableValues(new DocumentationAllowableListValues(allowableValues));
 		}
 		documentationParameter.setAllowMultiple(apiParam.allowMultiple());
 
-		if (isSet(apiParam.defaultValue())) {
+		if (DocumentationUtils.isSet(apiParam.defaultValue())) {
 			documentationParameter.setDefaultValue(apiParam.defaultValue());
 		}
 		documentationParameter.setDescription(apiParam.value());
 		documentationParameter.setInternalDescription(apiParam
 				.internalDescription());
 		// overwrite default name
-		if (isSet(apiParam.name())) {
+		if (DocumentationUtils.isSet(apiParam.name())) {
 			documentationParameter.setName(apiParam.name());
 		}
 		// documentationParameter.setNotes(apiParam.);
@@ -181,10 +141,6 @@ public class DocumentationParameterParser {
 			documentationParameter.setRequired(apiParam.required());
 		}
 	}
-
-    private boolean isAllowMultiple(Class parameterType) {
-        return parameterType != null && (parameterType.isArray() || Collection.class.isAssignableFrom(parameterType));
-    }
 
     private boolean hasIgnorableAnnotations(List<Annotation> annotations) {
         for(Annotation annotation : annotations) {

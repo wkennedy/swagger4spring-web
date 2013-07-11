@@ -10,19 +10,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DocumentationOperationParser {
 
+    private String resourcePath;
     private List<String> ignorableAnnotations;
+    private boolean ignoreUnusedPathVariables;
 
-    public DocumentationOperationParser() {
-        ignorableAnnotations = new ArrayList<String>();
-    }
-
-    public DocumentationOperationParser(List<String> ignorableAnnotations) {
+    public DocumentationOperationParser(String resourcePath, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
         this.ignorableAnnotations = ignorableAnnotations;
+        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
+        this.resourcePath = resourcePath;
     }
 
     public DocumentationOperation getDocumentationOperation(Method method) {
@@ -72,15 +71,39 @@ public class DocumentationOperationParser {
         List<DocumentationParameter> documentationParameters = documentationParameterParser
                 .getDocumentationParams(method);
         documentationOperation.setParameters(documentationParameters);
+        addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
 
         return documentationOperation;
     }
 
-    private void addError(DocumentationOperation documentationOperation,
-                          ApiError apiError) {
+    private void addError(DocumentationOperation documentationOperation, ApiError apiError) {
         DocumentationError documentationError = new DocumentationError();
         documentationError.setCode(apiError.code());
         documentationError.setReason(apiError.reason());
         documentationOperation.addErrorResponse(documentationError);
+    }
+
+    private void addUnusedPathVariables(DocumentationOperation documentationOperation, String[] methodPath) {
+        if(ignoreUnusedPathVariables){
+           return;
+        }
+
+        for(DocumentationParameter documentationParameter : new DocumentationPathParser().getPathParameters(resourcePath, methodPath)){
+            if(!isParameterPresented(documentationOperation, documentationParameter.getName())){
+                documentationOperation.addParameter(documentationParameter);
+            }
+        }
+    }
+
+    private boolean isParameterPresented(DocumentationOperation documentationOperation, String parameter){
+        if(parameter == null || documentationOperation.getParameters() == null){
+            return false;
+        }
+        for(DocumentationParameter documentationParameter : documentationOperation.getParameters()){
+            if(parameter.equals(documentationParameter.getName())){
+                return true;
+            }
+        }
+        return false;
     }
 }
