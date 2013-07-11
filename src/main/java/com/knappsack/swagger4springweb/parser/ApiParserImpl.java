@@ -33,13 +33,16 @@ public class ApiParserImpl implements ApiParser {
     private String servletPath = "/api";
     private String apiVersion = "v1";
     private List<String> ignorableAnnotations;
+    private boolean ignoreUnusedPathVariables;
 
     private final Map<String, Documentation> documents = new HashMap<String, Documentation>();
 
-    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath, String apiVersion, List<String> ignorableAnnotations) {
+    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath,
+            String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
         this.controllerPackages = baseControllerPackage;
         this.modelPackages = baseModelPackage;
         this.ignorableAnnotations = ignorableAnnotations;
+        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
         if (servletPath != null && !servletPath.isEmpty()) {
@@ -117,8 +120,9 @@ public class ApiParserImpl implements ApiParser {
         }
         
         //Allow for multiple controllers having the same resource path.
-        if (documents.containsKey(resourcePath)){
-           return documents.get(resourcePath);
+        Documentation documentation = documents.get(resourcePath);
+        if (documentation != null){
+           return documentation;
         }
 
         return new Documentation(apiVersion, swaggerVersion, basePath, resourcePath);
@@ -143,7 +147,7 @@ public class ApiParserImpl implements ApiParser {
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
             DocumentationEndPoint documentationEndPoint = endPointMap.get(value);
 
-            DocumentationOperationParser documentationOperationParser = new DocumentationOperationParser(ignorableAnnotations);
+            DocumentationOperationParser documentationOperationParser = new DocumentationOperationParser(documentation.resourcePath(), ignorableAnnotations, ignoreUnusedPathVariables);
             DocumentationOperation documentationOperation = documentationOperationParser.getDocumentationOperation(method);
             documentationEndPoint.addOperation(documentationOperation);
 
@@ -159,7 +163,7 @@ public class ApiParserImpl implements ApiParser {
             }
         }
     }
-    
+
     private void populateEndpointMapForDocumentation(Documentation documentation, Map<String, DocumentationEndPoint> endPointMap){
        if (documentation.getApis() != null){
           for (DocumentationEndPoint endpoint : documentation.getApis()){

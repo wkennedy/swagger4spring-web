@@ -40,6 +40,7 @@
         <org.wordnik-swagger-version>1.2.4</org.wordnik-swagger-version>
         <org.slf4j-version>1.6.4</org.slf4j-version>
         <org.logback-version>1.0.1</org.logback-version>
+        <java.version>1.5</java.version>
     </properties>
 
     <dependencies>
@@ -143,6 +144,14 @@
 
     <build>
         <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
