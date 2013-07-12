@@ -77,6 +77,6 @@ public class ApiParserTest extends AbstractTest {
     }
 
     private ApiParser createApiParser(List<String> controllerPackages, List<String> modelPackages) {
-        return new ApiParserImpl(controllerPackages, modelPackages, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>());
+        return new ApiParserImpl(controllerPackages, modelPackages, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>(), true);
     }
 }
