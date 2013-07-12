@@ -2,6 +2,7 @@ package com.knappsack.swagger4springweb.controller;
 
 import com.knappsack.swagger4springweb.AbstractTest;
 import com.wordnik.swagger.core.Documentation;
+import com.wordnik.swagger.core.DocumentationEndPoint;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.HandlerMapping;
@@ -36,10 +37,16 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         apiDocumentationController.setBaseControllerPackage(BASE_CONTROLLER_PACKAGE);
         apiDocumentationController.setBaseModelPackage(BASE_MODEL_PACKAGE);
         apiDocumentationController.setBasePath("http://localhost/swagger4spring-web-example");
+
         Documentation documentation = apiDocumentationController.getResources(servletRequest);
+
         assertNotNull(documentation);
-        assertEquals(documentation.getApiVersion(), "v1");
-        assertTrue(documentation.getApis().size() == 1);
-        assertTrue(documentation.getApis().get(0).getPath().equals("/api/doc/api/v1/test"));
+        assertEquals("v1", documentation.apiVersion());
+        assertEquals(END_POINT_PATHS.size(), documentation.getApis().size());
+        assertEquals("/api/doc/api/v1/test", documentation.getApis().get(0).getPath());
+
+        for (DocumentationEndPoint endPoint : documentation.getApis()) {
+            assertTrue(END_POINT_PATHS.contains(endPoint.getPath()));
+        }
     }
 }

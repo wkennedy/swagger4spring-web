@@ -1,5 +1,6 @@
 package com.knappsack.swagger4springweb.parser;
 
+import com.knappsack.swagger4springweb.annotation.ApiExclude;
 import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.Api;
@@ -80,6 +81,10 @@ public class ApiParserImpl implements ApiParser {
                 continue;
             }
 
+            if (controllerClass.isAnnotationPresent(ApiExclude.class)) {
+                continue;
+            }
+
             Documentation documentation = processControllerDocumentation(controllerClass);
             String description = "";
             Api controllerApi = controllerClass.getAnnotation(Api.class);
@@ -94,7 +99,10 @@ public class ApiParserImpl implements ApiParser {
                 createDocumentationSchemas(documentation);
             }
 
-            documents.put(documentation.getResourcePath(), documentation);
+            // controllers without any operations are excluded from the documents list
+            if (documentation.getApis() != null && !documentation.getApis().isEmpty()) {
+                documents.put(documentation.getResourcePath(), documentation);
+            }
         }
 
         return documents;
@@ -130,6 +138,10 @@ public class ApiParserImpl implements ApiParser {
         populateEndpointMapForDocumentation(documentation, endPointMap);
         
         for (Method method : methods) {
+            if (method.isAnnotationPresent(ApiExclude.class)) {
+                continue;
+            }
+
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
             DocumentationEndPointParser documentationEndPointParser = new DocumentationEndPointParser();
             DocumentationEndPoint documentationEndPoint = documentationEndPointParser.getDocumentationEndPoint(method, description, documentation.getResourcePath());
@@ -140,6 +152,10 @@ public class ApiParserImpl implements ApiParser {
         }
 
         for (Method method : methods) {
+            if (method.isAnnotationPresent(ApiExclude.class)) {
+                continue;
+            }
+
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
             DocumentationEndPoint documentationEndPoint = endPointMap.get(value);
 
