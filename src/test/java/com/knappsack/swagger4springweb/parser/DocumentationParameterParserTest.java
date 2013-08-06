@@ -1,7 +1,7 @@
 package com.knappsack.swagger4springweb.parser;
 
 import com.knappsack.swagger4springweb.AbstractTest;
-import com.knappsack.swagger4springweb.testController.TestController;
+import com.knappsack.swagger4springweb.testController.MockController;
 import com.wordnik.swagger.core.DocumentationParameter;
 import org.junit.Test;
 
@@ -15,7 +15,7 @@ public class DocumentationParameterParserTest extends AbstractTest {
 
     @Test
     public void documentationParameterTest() throws NoSuchMethodException {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         Method method = controllerClass.getMethod("getTestPojoRequestParams", String.class, Boolean.class, Byte.class, Long.class, Integer.class, Float.class, Double.class, Date.class);
         DocumentationParameterParser parameterParser = new DocumentationParameterParser();
         List<DocumentationParameter> documentationParameters = parameterParser.getDocumentationParams(method);

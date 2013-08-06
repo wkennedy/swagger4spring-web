@@ -6,8 +6,11 @@ import java.util.List;
 import com.wordnik.swagger.annotations.ApiClass;
 import com.wordnik.swagger.annotations.ApiProperty;
 
-@ApiClass(value = "TestPojo", description = "A basic pojo for testing API documentation")
-public class TestPojo {
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
+@ApiClass(value = "MockPojo", description = "A basic pojo for testing API documentation")
+public class MockPojo {
 
     @ApiProperty(value = "id", dataType = "long")
     private long id;
@@ -16,7 +19,7 @@ public class TestPojo {
     @ApiProperty(value = "description", dataType = "String")
     private String description;
 
-    private Collection<TestPojoChild> children;
+    private Collection<MockPojoChild> children;
 
     public long getId() {
         return id;
@@ -42,11 +45,11 @@ public class TestPojo {
         this.description = description;
     }
 
-    public Collection<TestPojoChild> getChildren() {
+    public Collection<MockPojoChild> getChildren() {
         return children;
     }
 
-    public void setChildren(List<TestPojoChild> children) {
+    public void setChildren(List<MockPojoChild> children) {
         this.children = children;
     }
 }

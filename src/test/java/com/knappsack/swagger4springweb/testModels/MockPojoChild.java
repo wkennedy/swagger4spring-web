@@ -1,6 +1,6 @@
 package com.knappsack.swagger4springweb.testModels;
 
-public class TestPojoChild {
+public class MockPojoChild {
     public long id;
     public String childName;
 

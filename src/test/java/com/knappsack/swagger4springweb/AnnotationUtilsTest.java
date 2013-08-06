@@ -1,7 +1,7 @@
 package com.knappsack.swagger4springweb;
 
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
-import com.knappsack.swagger4springweb.testController.TestController;
+import com.knappsack.swagger4springweb.testController.MockController;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class AnnotationUtilsTest extends AbstractTest {
 
     @Test
     public void testHasApiParam() {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         try {
             boolean hasApiParam = AnnotationUtils.hasApiParam(controllerClass.getMethod("getTestPojos", HttpServletRequest.class, String.class));
             assertTrue(hasApiParam);
@@ -31,7 +31,7 @@ public class AnnotationUtilsTest extends AbstractTest {
 
     @Test
     public void testGetMethodRequestMappingValue() {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         try {
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(controllerClass.getMethod("getTestPojos", HttpServletRequest.class, String.class));
             assertEquals(requestMappingValue, "");
@@ -42,7 +42,7 @@ public class AnnotationUtilsTest extends AbstractTest {
 
     @Test
     public void testGetSwaggerParameterAnnotations() throws NoSuchMethodException {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         Method method = controllerClass.getMethod("getTestPojos", HttpServletRequest.class, String.class);
         List<AnnotatedParameter> annotatedParameters = AnnotationUtils.getAnnotatedParameters(method);
         assertTrue(annotatedParameters.size() == 1);
@@ -55,7 +55,7 @@ public class AnnotationUtilsTest extends AbstractTest {
 
     @Test
     public void testGetSpringMvcParaterAnnotations() throws NoSuchMethodException {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         Method method = controllerClass.getMethod("getTestPojosNoSwaggerAnnotations", HttpServletRequest.class, String.class);
         List<AnnotatedParameter> annotatedParameters = AnnotationUtils.getAnnotatedParameters(method);
         assertTrue(annotatedParameters.size() == 1);
@@ -78,7 +78,7 @@ public class AnnotationUtilsTest extends AbstractTest {
 
 	@Test
     public void testMethodHasNoApiParamAnnotation() throws NoSuchMethodException {
-        Class controllerClass = TestController.class;
+        Class controllerClass = MockController.class;
         Method method = controllerClass.getMethod("getTestPojosNoSwaggerAnnotations", HttpServletRequest.class, String.class);
         boolean hasApiParam = AnnotationUtils.hasApiParam(method);
         assertFalse(hasApiParam);

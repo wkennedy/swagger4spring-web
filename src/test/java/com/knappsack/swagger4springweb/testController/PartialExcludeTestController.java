@@ -2,7 +2,7 @@ package com.knappsack.swagger4springweb.testController;
 
 import com.knappsack.swagger4springweb.AbstractTest;
 import com.knappsack.swagger4springweb.annotation.ApiExclude;
-import com.knappsack.swagger4springweb.testModels.TestPojo;
+import com.knappsack.swagger4springweb.testModels.MockPojo;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
@@ -21,8 +21,8 @@ public class PartialExcludeTestController {
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    List<TestPojo> apiOperation1ToInclude() {
-        return new ArrayList<TestPojo>();
+    List<MockPojo> apiOperation1ToInclude() {
+        return new ArrayList<MockPojo>();
     }
 
     @ApiOperation(value = AbstractTest.EXCLUDE_LABEL)
@@ -30,15 +30,15 @@ public class PartialExcludeTestController {
     @ApiExclude
     public
     @ResponseBody
-    List<TestPojo> apiOperation2ToExclude() {
-        return new ArrayList<TestPojo>();
+    List<MockPojo> apiOperation2ToExclude() {
+        return new ArrayList<MockPojo>();
     }
 
     @RequestMapping(value = "/resource1", method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    TestPojo apiOperation3ToInclude() {
-        return new TestPojo();
+    MockPojo apiOperation3ToInclude() {
+        return new MockPojo();
     }
 
     @ApiOperation(value = AbstractTest.EXCLUDE_LABEL)
@@ -46,7 +46,7 @@ public class PartialExcludeTestController {
     @ApiExclude
     public
     @ResponseBody
-    TestPojo apiOperation4ToExclude() {
-        return new TestPojo();
+    MockPojo apiOperation4ToExclude() {
+        return new MockPojo();
     }
 }

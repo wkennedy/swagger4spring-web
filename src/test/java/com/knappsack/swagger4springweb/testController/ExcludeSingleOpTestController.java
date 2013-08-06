@@ -2,7 +2,7 @@ package com.knappsack.swagger4springweb.testController;
 
 import com.knappsack.swagger4springweb.AbstractTest;
 import com.knappsack.swagger4springweb.annotation.ApiExclude;
-import com.knappsack.swagger4springweb.testModels.TestPojo;
+import com.knappsack.swagger4springweb.testModels.MockPojo;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
@@ -23,7 +23,7 @@ public class ExcludeSingleOpTestController {
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    List<TestPojo> apiOperation1ToInclude() {
-        return new ArrayList<TestPojo>();
+    List<MockPojo> apiOperation1ToInclude() {
+        return new ArrayList<MockPojo>();
     }
 }
