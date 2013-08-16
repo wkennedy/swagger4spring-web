@@ -40,7 +40,8 @@
         <org.wordnik-swagger-version>1.2.5</org.wordnik-swagger-version>
         <org.slf4j-version>1.6.4</org.slf4j-version>
         <org.logback-version>1.0.1</org.logback-version>
-        <java.version>1.5</java.version>
+        <junit-version>4.9</junit-version>
+        <java.version>1.6</java.version>
     </properties>
 
     <dependencies>
@@ -100,11 +101,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.0.5</version>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.9</version>
-        </dependency>
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
@@ -127,17 +124,29 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${org.logback-version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>${org.logback-version}</version>
+            <scope>runtime</scope>
         </dependency>
+
+        <!--Testing dependencies-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit-version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>3.1.1.RELEASE</version>
+            <version>${org.springframework-version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -147,10 +156,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
-                    </configuration>
                 </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
