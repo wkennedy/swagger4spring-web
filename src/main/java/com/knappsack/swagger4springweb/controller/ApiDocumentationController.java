@@ -29,6 +29,7 @@ public class ApiDocumentationController {
     private Map<String, Documentation> documentation;
     private List<String> ignorableAnnotations = new ArrayList<String>();
     private boolean ignoreUnusedPathVariables = true;
+    private boolean basePathFromReferer = false;
     private Documentation resourceList;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
@@ -111,10 +112,17 @@ public class ApiDocumentationController {
             //If no base path was specified, attempt to get the base path from the request URL
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
                     .getRequestAttributes()).getRequest();
-            if(request != null) {
-                String mapping = request.getServletPath();
-                basePath = request.getRequestURL().toString();
-                basePath = basePath.substring(0, basePath.indexOf(mapping));
+            if (request != null) {
+                // requested from
+                String referer = request.getHeader("Referer");
+
+                if (basePathFromReferer && referer != null) {
+                    basePath = referer.substring(0, referer.lastIndexOf("/"));
+                } else {
+                    String mapping = request.getServletPath();
+                    basePath = request.getRequestURL().toString();
+                    basePath = basePath.substring(0, basePath.indexOf(mapping));
+                }
             }
         }
         return basePath;
@@ -133,6 +141,31 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setApiVersion(String apiVersion) {
         this.apiVersion = apiVersion;
+    }
+
+    @SuppressWarnings("unused")
+    public List<String> getIgnorableAnnotations() {
+        return ignorableAnnotations;
+    }
+
+    @SuppressWarnings("unused")
+    public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
+        this.ignorableAnnotations = ignorableAnnotations;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isIgnoreUnusedPathVariables() {
+        return ignoreUnusedPathVariables;
+    }
+
+    @SuppressWarnings("unused")
+    public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
+        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
+    }
+
+    @SuppressWarnings("unused")
+    public void setBasePathFromReferer(final boolean basePathFromReferer) {
+        this.basePathFromReferer = basePathFromReferer;
     }
 
     private Map<String, Documentation> getDocs(HttpServletRequest request) {
@@ -193,19 +226,4 @@ public class ApiDocumentationController {
         return modelPackages;
     }
 
-    public List<String> getIgnorableAnnotations() {
-        return ignorableAnnotations;
-    }
-
-    public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
-        this.ignorableAnnotations = ignorableAnnotations;
-    }
-
-    public boolean isIgnoreUnusedPathVariables() {
-        return ignoreUnusedPathVariables;
-    }
-
-    public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
-        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
-    }
 }
