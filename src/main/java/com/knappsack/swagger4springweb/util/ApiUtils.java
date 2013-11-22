@@ -4,12 +4,13 @@ import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * Author: andrey.antonov
  * Date: 7/3/13
  */
-public class DocumentationUtils {
+public class ApiUtils {
 
     public static String getSwaggerTypeFor(Class<?> parameterType) {
         Class type = parameterType;
@@ -32,15 +33,19 @@ public class DocumentationUtils {
         } else if(Byte.class.isAssignableFrom(type)) {
             return "byte";
         }  else if(Long.class.isAssignableFrom(type)) {
-            return "long";
+            return "int64";
         }  else if(Integer.class.isAssignableFrom(type)) {
-            return "int";
+            return "int32";
         }  else if(Float.class.isAssignableFrom(type)) {
             return "float";
         } else if(MultipartFile.class.isAssignableFrom(type)) {
             return "file";
         } else if (Number.class.isAssignableFrom(type)) {
             return "double";
+        } else if(Double.class.isAssignableFrom(type)) {
+            return "double";
+        } else if(Date.class.isAssignableFrom(type)) {
+            return "date";
         }
         // others
         return type.getSimpleName();

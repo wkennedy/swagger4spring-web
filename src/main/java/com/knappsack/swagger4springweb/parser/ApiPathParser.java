@@ -1,24 +1,21 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.knappsack.swagger4springweb.util.DocumentationUtils;
+import com.knappsack.swagger4springweb.util.ApiUtils;
 import com.wordnik.swagger.core.ApiValues;
-import com.wordnik.swagger.core.DocumentationParameter;
+import com.wordnik.swagger.model.Parameter;
+import scala.Option;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DocumentationPathParser {
+public class ApiPathParser {
 
     private static final Pattern PATTERN = Pattern.compile("\\{([a-zA-Z]+)\\}");
     private static final Class<?> TYPE = String.class;
 
-    public List<DocumentationParameter> getPathParameters(String resourcePath, String[] methodPaths) {
-        Map<String, DocumentationParameter> parameters = new HashMap<String, DocumentationParameter>();
+    public List<Parameter> getPathParameters(String resourcePath, String[] methodPaths) {
+        Map<String, Parameter> parameters = new HashMap<String, Parameter>();
 
         addParameters(parameters, resourcePath);
 
@@ -28,24 +25,27 @@ public class DocumentationPathParser {
             }
         }
 
-        return new ArrayList<DocumentationParameter>(parameters.values());
+        return new ArrayList<Parameter>(parameters.values());
     }
 
-    private void addParameters(Map<String, DocumentationParameter> parameters, String path) {
+    private void addParameters(Map<String, Parameter> parameters, String path) {
         for (String parameter : getPathParameters(path)) {
             parameters.put(parameter, createParameter(parameter));
         }
     }
 
-    private DocumentationParameter createParameter(String parameter) {
-        DocumentationParameter documentationParameter = new DocumentationParameter();
-        documentationParameter.setName(parameter);
-        documentationParameter.setRequired(true);
-        documentationParameter.setDataType(DocumentationUtils.getSwaggerTypeFor(TYPE));
-        documentationParameter.setValueTypeInternal(TYPE.getName());
-        documentationParameter.setAllowMultiple(DocumentationUtils.isAllowMultiple(TYPE));
-        documentationParameter.setParamType(ApiValues.TYPE_PATH);
-        documentationParameter.setDescription(getDescription(parameter));
+    private Parameter createParameter(String parameter) {
+        Option<String> descriptionOption = Option.apply(getDescription(parameter));
+        Parameter documentationParameter = new Parameter(parameter, descriptionOption, null, true, ApiUtils.isAllowMultiple(TYPE),
+                ApiUtils.getSwaggerTypeFor(TYPE), null, ApiValues.TYPE_PATH(), null);
+
+//        documentationParameter.setName(parameter);
+//        documentationParameter.setRequired(true);
+//        documentationParameter.setDataType(ApiUtils.getSwaggerTypeFor(TYPE));
+//        documentationParameter.setValueTypeInternal(TYPE.getName());
+//        documentationParameter.setAllowMultiple(ApiUtils.isAllowMultiple(TYPE));
+//        documentationParameter.setParamType(ApiValues.TYPE_PATH);
+//        documentationParameter.setDescription(getDescription(parameter));
 
         return documentationParameter;
     }

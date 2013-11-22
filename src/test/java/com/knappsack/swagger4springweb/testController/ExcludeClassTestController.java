@@ -14,7 +14,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/v1/exclude3")
 @ApiExclude
-@Api(value = "Test ApiExcludes", listingClass = "ExcludeClassTestController", basePath = "/api/v1/exclude3", description = "controller to exclude")
+@Api(value = "Test ApiExcludes", basePath = "/api/v1/exclude3", description = "controller to exclude")
 public class ExcludeClassTestController {
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")

@@ -1,15 +1,15 @@
 package com.knappsack.swagger4springweb.controller;
 
 import com.knappsack.swagger4springweb.AbstractTest;
-import com.wordnik.swagger.core.Documentation;
-import com.wordnik.swagger.core.DocumentationEndPoint;
+import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
+import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.ApiListingReference;
+import com.wordnik.swagger.model.ResourceListing;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.HandlerMapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ApiDocumentationControllerTest extends AbstractTest {
 
@@ -22,10 +22,10 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         apiDocumentationController.setBaseControllerPackage(BASE_CONTROLLER_PACKAGE);
         apiDocumentationController.setBaseModelPackage(BASE_MODEL_PACKAGE);
         apiDocumentationController.setBasePath("http://localhost/swagger4spring-web-example");
-        Documentation documentation = apiDocumentationController.getDocumentation(servletRequest);
+        ApiListing documentation = apiDocumentationController.getDocumentation(servletRequest);
         assertNotNull(documentation);
-        assertEquals(documentation.getApiVersion(), "v1");
-        assertEquals(documentation.getResourcePath(), "/api/v1/test");
+        assertEquals(documentation.apiVersion(), "v1");
+        assertEquals(documentation.resourcePath(), "/api/v1/test");
     }
 
     @Test
@@ -38,15 +38,15 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         apiDocumentationController.setBaseModelPackage(BASE_MODEL_PACKAGE);
         apiDocumentationController.setBasePath("http://localhost/swagger4spring-web-example");
 
-        Documentation documentation = apiDocumentationController.getResources(servletRequest);
+        ResourceListing documentation = apiDocumentationController.getResources(servletRequest);
 
         assertNotNull(documentation);
         assertEquals("v1", documentation.apiVersion());
-        assertEquals(END_POINT_PATHS.size(), documentation.getApis().size());
-        assertEquals("/api/doc/api/v1/test", documentation.getApis().get(0).getPath());
+        assertEquals(END_POINT_PATHS.size(), documentation.apis().size());
+        assertEquals("/doc/api/v1/test", documentation.apis().apply(0).path());
 
-        for (DocumentationEndPoint endPoint : documentation.getApis()) {
-            assertTrue(END_POINT_PATHS.contains(endPoint.getPath()));
+        for (ApiListingReference endPoint : ScalaToJavaUtil.toJavaList(documentation.apis())) {
+            assertTrue(END_POINT_PATHS.contains(endPoint.path()));
         }
     }
 }

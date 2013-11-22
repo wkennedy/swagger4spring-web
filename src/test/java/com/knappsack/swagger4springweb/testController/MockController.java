@@ -13,11 +13,11 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/v1/test")
-@Api(value = "Test operations", listingClass = "TestController", basePath = "/api/v1/test", description = "Operations for all tests")
+@Api(value = "Test operations", basePath = "/api/v1/test", description = "Operations for all tests")
 public class MockController {
 
-    @ApiOperation(value = "Find all test pojos", notes = "Get all test pojos for this test.", httpMethod = "GET", responseClass = "MockPojo", multiValueResponse = true)
-    @ApiError(code = 500, reason = "Process error")
+    @ApiOperation(value = "Find all test pojos", notes = "Get all test pojos for this test.", httpMethod = "GET", response = MockPojo.class)
+//    @ApiError(code = 500, reason = "Process error")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody

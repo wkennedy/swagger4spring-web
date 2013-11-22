@@ -15,7 +15,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/v1/partialExclude")
-@Api(value = "Test ApiExcludes", listingClass = "PartialExcludeTestController", basePath = "/api/v1/partialExclude", description = "Some operations to exclude")
+@Api(value = "Test ApiExcludes", basePath = "/api/v1/partialExclude", description = "Some operations to exclude")
 public class PartialExcludeTestController {
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
