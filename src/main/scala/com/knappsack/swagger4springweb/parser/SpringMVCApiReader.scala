@@ -1,8 +1,5 @@
 package com.knappsack.swagger4springweb.parser
 
-import com.wordnik.swagger.reader.{ClassReader, ClassReaderUtils}
-import com.wordnik.swagger.config.SwaggerConfig
-import com.wordnik.swagger.model.ApiListing
 
 import com.wordnik.swagger.annotations._
 import com.wordnik.swagger.config._
@@ -25,15 +22,9 @@ import com.wordnik.swagger.model.Operation
 import com.wordnik.swagger.model.ResponseMessage
 import com.wordnik.swagger.model.ApiListing
 
-//import javax.ws.rs._
-//import javax.ws.rs.core.Context
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable.{ ListBuffer, HashMap, HashSet }
+import scala.collection.mutable.ListBuffer
 
 trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
-
-//  def read(docRoot: String, cls: Class[_], config: SwaggerConfig): Option[ApiListing] = null
 
   private val LOGGER = LoggerFactory.getLogger(classOf[SpringMVCApiReader])
   val GenericTypeMapper = "([a-zA-Z\\.]*)<([a-zA-Z0-9\\.\\,\\s]*)>".r
