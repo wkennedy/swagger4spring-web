@@ -34,7 +34,14 @@ public class ApiOperationParser {
         documentationOperation.setName(method.getName());
         documentationOperation.setNickname(method.getName());// method name
         documentationOperation.setResponseTypeInternal(method.getReturnType().getName());
-        documentationOperation.setResponseClass(method.getReturnType().getSimpleName());
+        String responseClass;
+        Class<?> returnType = method.getReturnType();
+        if(returnType.isArray()) {
+            responseClass = returnType.getComponentType().getSimpleName();
+        } else {
+            responseClass = method.getReturnType().getSimpleName();
+        }
+        documentationOperation.setResponseClass(responseClass);
 
         String httpMethod = "";
         RequestMapping methodRequestMapping = method
@@ -45,7 +52,7 @@ public class ApiOperationParser {
             }
         }
         documentationOperation.getConsumes().addAll(Arrays.asList(methodRequestMapping.consumes()));
-        documentationOperation.getProtocols().add(httpMethod.trim());
+        documentationOperation.setHttpMethod(httpMethod.trim());
         documentationOperation.getProduces().addAll(Arrays.asList(methodRequestMapping.produces()));
 
         // get ApiOperation information
@@ -64,6 +71,7 @@ public class ApiOperationParser {
             documentationOperation.getConsumes().add(apiOperation.consumes());
             documentationOperation.getProtocols().add(apiOperation.protocols());
             documentationOperation.getAuthorizations().add(apiOperation.authorizations());
+            documentationOperation.setHttpMethod(httpMethod);
         }
 
         ApiResponse apiError = method.getAnnotation(ApiResponse.class);
@@ -86,7 +94,7 @@ public class ApiOperationParser {
         addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
 
 
-        Operation operation = new Operation(documentationOperation.getName(), documentationOperation.getSummary(), documentationOperation.getNotes(),
+        Operation operation = new Operation(documentationOperation.getHttpMethod(), documentationOperation.getSummary(), documentationOperation.getNotes(),
                 documentationOperation.getResponseClass(),
                 documentationOperation.getNickname(), documentationOperation.getPosition(),
                 JavaToScalaUtil.toScalaList(documentationOperation.getProduces()),

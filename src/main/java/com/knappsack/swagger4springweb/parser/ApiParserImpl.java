@@ -106,14 +106,13 @@ public class ApiParserImpl implements ApiParser {
             } else {
                 if(apiListing.apis() == null) {
                     apiListing = processMethods(requestMappingMethods, apiListing, description);
+                    //Loop over operations 'methods'
+                    //processMethods(requestMappingMethods, apiListing, description);
+                    if (modelPackages != null && !modelPackages.isEmpty()) {
+                        //todo - do the models need to be added to the ApiListing.  Can this be removed?
+                        createApiListingModels();
+                    }
                 }
-            }
-
-            //Loop over operations 'methods'
-            processMethods(requestMappingMethods, apiListing, description);
-            if (modelPackages != null && !modelPackages.isEmpty()) {
-                //todo - do the models need to be added to the ApiListing.  Can this be removed?
-                createApiListingModels();
             }
 
             // controllers without any operations are excluded from the apiListingMap list
@@ -220,9 +219,11 @@ public class ApiParserImpl implements ApiParser {
 //            }
         }
 
+        Map<String, Model> apiListingModels = createApiListingModels();
+
 //        Option.<scala.collection.immutable.Map<String,Model>>empty();
 //        ScalaToJavaUtil.toScalaImmutableMap(documentationSchemaMap);
-        Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option.apply(JavaToScalaUtil.toScalaImmutableMap(modelMap));
+        Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option.apply(JavaToScalaUtil.toScalaImmutableMap(apiListingModels));
 
         return new ApiListing(apiListing.apiVersion(), apiListing.swaggerVersion(), apiListing.basePath(), apiListing.resourcePath(),
                 apiListing.produces(), apiListing.consumes(), apiListing.protocols(), apiListing.authorizations(), JavaToScalaUtil.toScalaList(newApiDescriptions), modelOptions,

@@ -346,9 +346,13 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
   }
 
   def pathFromMethod(method: Method): String = {
-    val path = method.getAnnotation(classOf[javax.ws.rs.Path])
-    if(path == null) ""
-    else path.value
+    val requestMapping = method.getAnnotation(classOf[org.springframework.web.bind.annotation.RequestMapping])
+    if(requestMapping != null) {
+      val requestMappingValues = requestMapping.value
+        if(requestMappingValues.length > 0)
+          return requestMapping.value()(0)
+    }
+    ""
   }
 
   def parseApiParamAnnotation(param: MutableParameter, annotation: ApiParam) {
