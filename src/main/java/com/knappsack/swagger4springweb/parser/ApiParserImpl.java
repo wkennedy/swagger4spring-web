@@ -97,15 +97,19 @@ public class ApiParserImpl implements ApiParser {
                 continue;
             }
 
+            Set<Method> requestMappingMethods = Reflections.getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
             ApiListing apiListing = processControllerApi(controllerClass);
             String description = "";
             Api controllerApi = controllerClass.getAnnotation(Api.class);
             if (controllerApi != null) {
                 description = controllerApi.description();
+            } else {
+                if(apiListing.apis() == null) {
+                    apiListing = processMethods(requestMappingMethods, apiListing, description);
+                }
             }
 
             //Loop over operations 'methods'
-            Set<Method> requestMappingMethods = Reflections.getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
             processMethods(requestMappingMethods, apiListing, description);
             if (modelPackages != null && !modelPackages.isEmpty()) {
                 //todo - do the models need to be added to the ApiListing.  Can this be removed?
@@ -157,7 +161,7 @@ public class ApiParserImpl implements ApiParser {
         return new ApiListing(apiVersion, swaggerVersion, basePath, resourcePath, null, null, null, null, null, null, null, 0);
     }
 
-    private ApiListing processMethods(Set<Method> methods, ApiListing apiListing, String description) {
+    private ApiListing processMethods(Collection<Method> methods, ApiListing apiListing, String description) {
         Map<String, ApiDescription> endPointMap = new HashMap<String, ApiDescription>();
         
         populateApiDescriptionMapForApiListing(apiListing, endPointMap);
