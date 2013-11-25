@@ -94,25 +94,24 @@ public class ApiOperationParser {
         addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
 
 
-        Operation operation = new Operation(documentationOperation.getHttpMethod(), documentationOperation.getSummary(), documentationOperation.getNotes(),
+        return new Operation(documentationOperation.getHttpMethod(),
+                documentationOperation.getSummary(),
+                documentationOperation.getNotes(),
                 documentationOperation.getResponseClass(),
-                documentationOperation.getNickname(), documentationOperation.getPosition(),
+                documentationOperation.getNickname(),
+                documentationOperation.getPosition(),
                 JavaToScalaUtil.toScalaList(documentationOperation.getProduces()),
                 JavaToScalaUtil.toScalaList(documentationOperation.getConsumes()),
                 JavaToScalaUtil.toScalaList(documentationOperation.getProtocols()),
                 JavaToScalaUtil.toScalaList(documentationOperation.getAuthorizations()),
                 JavaToScalaUtil.toScalaList(documentationOperation.getParameters()) ,
-                JavaToScalaUtil.toScalaList(documentationOperation.getResponseMessages()), null);
-
-        return operation;
+                JavaToScalaUtil.toScalaList(documentationOperation.getResponseMessages()),
+                null);
     }
 
     private void addError(DocumentationOperation documentationOperation, ApiResponse apiError) {
         Option<String> responseOption = Option.apply(apiError.response().getName());
         ResponseMessage responseMessage = new ResponseMessage(apiError.code(), apiError.message(),responseOption);
-//        DocumentationError documentationError = new DocumentationError();
-//        documentationError.setCode(apiError.code());
-//        documentationError.setReason(apiError.reason());
         documentationOperation.getResponseMessages().add(responseMessage);
     }
 
@@ -140,6 +139,7 @@ public class ApiOperationParser {
         return false;
     }
 
+    //This class is used as a temporary solution to create a Swagger Operation object, since the Operation is immutable
     class DocumentationOperation {
         private String name;
         private String nickname;

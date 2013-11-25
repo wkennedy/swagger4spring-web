@@ -195,18 +195,22 @@ public class ApiDocumentationController {
         return modelPackages;
     }
 
+    @SuppressWarnings("unused")
     public List<String> getIgnorableAnnotations() {
         return ignorableAnnotations;
     }
 
+    @SuppressWarnings("unused")
     public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
         this.ignorableAnnotations = ignorableAnnotations;
     }
 
+    @SuppressWarnings("unused")
     public boolean isIgnoreUnusedPathVariables() {
         return ignoreUnusedPathVariables;
     }
 
+    @SuppressWarnings("unused")
     public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
     }

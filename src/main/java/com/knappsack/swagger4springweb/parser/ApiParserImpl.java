@@ -27,9 +27,7 @@ import static org.reflections.ReflectionUtils.withAnnotation;
 public class ApiParserImpl implements ApiParser {
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
-    //    private String baseControllerPackage = "";
     private List<String> controllerPackages = new ArrayList<String>();
-    //    private String baseModelPackage = "";
     private List<String> modelPackages = new ArrayList<String>();
     private String basePath = "";
     private String servletPath = "/api";
@@ -37,6 +35,7 @@ public class ApiParserImpl implements ApiParser {
     private List<String> ignorableAnnotations;
     private boolean ignoreUnusedPathVariables;
     private SwaggerConfig swaggerConfig;
+    private Map<String, Model> apiListingModels;
 
     private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
 
@@ -56,6 +55,7 @@ public class ApiParserImpl implements ApiParser {
         swaggerConfig.setApiVersion(apiVersion);
         swaggerConfig.setBasePath(basePath);
         swaggerConfig.setSwaggerVersion(swaggerVersion);
+        createApiListingModels();
     }
 
     public ResourceListing getResourceListing(Map<String, ApiListing> apiListingMap) {
@@ -219,7 +219,7 @@ public class ApiParserImpl implements ApiParser {
 //            }
         }
 
-        Map<String, Model> apiListingModels = createApiListingModels();
+//        Map<String, Model> apiListingModels = createApiListingModels();
 
 //        Option.<scala.collection.immutable.Map<String,Model>>empty();
 //        ScalaToJavaUtil.toScalaImmutableMap(documentationSchemaMap);
@@ -240,7 +240,7 @@ public class ApiParserImpl implements ApiParser {
        }
     }
 
-    private Map<String, Model> createApiListingModels() {
+    private void createApiListingModels() {
         Map<String, Model> modelMap = new HashMap<String, Model>();
 
         for (String modelPackage : modelPackages) {
@@ -274,6 +274,6 @@ public class ApiParserImpl implements ApiParser {
 //                documentation.addModel(schemaName, parser.parse().toDocumentationSchema());
             }
         }
-        return modelMap;
+        apiListingModels = modelMap;
     }
 }

@@ -36,22 +36,13 @@ public class ApiPathParser {
 
     private Parameter createParameter(String parameter) {
         Option<String> descriptionOption = Option.apply(getDescription(parameter));
-        Parameter documentationParameter = new Parameter(parameter, descriptionOption, null, true, ApiUtils.isAllowMultiple(TYPE),
+
+        return new Parameter(parameter, descriptionOption, null, true, ApiUtils.isAllowMultiple(TYPE),
                 ApiUtils.getSwaggerTypeFor(TYPE), null, ApiValues.TYPE_PATH(), null);
-
-//        documentationParameter.setName(parameter);
-//        documentationParameter.setRequired(true);
-//        documentationParameter.setDataType(ApiUtils.getSwaggerTypeFor(TYPE));
-//        documentationParameter.setValueTypeInternal(TYPE.getName());
-//        documentationParameter.setAllowMultiple(ApiUtils.isAllowMultiple(TYPE));
-//        documentationParameter.setParamType(ApiValues.TYPE_PATH);
-//        documentationParameter.setDescription(getDescription(parameter));
-
-        return documentationParameter;
     }
 
     private String getDescription(String parameter) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder builder = new StringBuilder();
 
         //Parameters with name length less then 3 will have description equal to their name
         if (parameter == null || parameter.length() < 3) {
@@ -62,19 +53,19 @@ public class ApiPathParser {
 
         for (int i = 0; i < tmp.length(); i++) {
             if (Character.isUpperCase(tmp.charAt(i))) {
-                if (buffer.length() == 0) {
+                if (builder.length() == 0) {
                     // First letter is capital
-                    buffer.append(tmp.substring(0, 1).toUpperCase()).append(tmp.substring(1, i));
+                    builder.append(tmp.substring(0, 1).toUpperCase()).append(tmp.substring(1, i));
                 } else {
-                    buffer.append(tmp.substring(0, i).toLowerCase());
+                    builder.append(tmp.substring(0, i).toLowerCase());
                 }
-                buffer.append(" ");
+                builder.append(" ");
                 tmp = tmp.substring(i);
                 i = 0;
             }
         }
 
-        return buffer.append(tmp.toLowerCase()).toString();
+        return builder.append(tmp.toLowerCase()).toString();
     }
 
     private List<String> getPathParameters(String path) {

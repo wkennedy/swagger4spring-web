@@ -21,10 +21,10 @@ public class ApiModelParser {
             SwaggerSchemaConverter parser = new SwaggerSchemaConverter();
             String schemaName;
             if(returnType.isArray()) {
-//                parser = new ApiModelParser(returnType.getComponentType());
+                //TODO - possibly reinvestigate what we should do in the case of an array
+                //parser = new ApiModelParser(returnType.getComponentType());
                 schemaName = returnType.getComponentType().getSimpleName();
             } else {
-//                parser = new ApiModelParser(method.getReturnType());
                 schemaName = returnType.getSimpleName();
             }
             Option<Model> model = parser.read(returnType);
@@ -43,7 +43,6 @@ public class ApiModelParser {
         List<AnnotatedParameter> annotatedParameters = AnnotationUtils.getAnnotatedParameters(method);
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
             Class<?> parameterType = annotatedParameter.getParameterType();
-//            ApiModelParser parser = new ApiModelParser(parameterType);
             SwaggerSchemaConverter parser = new SwaggerSchemaConverter();
             Option<Model> model = parser.read(parameterType);
             if(model.nonEmpty()) {

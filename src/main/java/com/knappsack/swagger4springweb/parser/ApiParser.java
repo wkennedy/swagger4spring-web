@@ -14,7 +14,7 @@ public interface ApiParser {
     ResourceListing getResourceListing(Map<String, ApiListing> documentationMap);
 
     /**
-     * @return Map<String, ApiListing> - a map of different API declarations discovered when scanning for classes
+     * @return Map - a map of different API declarations discovered when scanning for classes
      * annotated with @Controller.  The key value is the resource path of the API.
      */
     Map<String, ApiListing> createApiListings();
