@@ -329,11 +329,11 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
   }
 
   def getAllFields(cls: Class[_]): List[Field] = {
-    var fields = cls.getDeclaredFields().toList;
-    if (cls.getSuperclass() != null) {
-      fields = getAllFields(cls.getSuperclass()) ++ fields;
+    var fields = cls.getDeclaredFields.toList
+    if (cls.getSuperclass != null) {
+      fields = getAllFields(cls.getSuperclass) ++ fields
     }
-    return fields;
+    fields
   }
 
   def pathFromMethod(method: Method): String = {
