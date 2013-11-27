@@ -39,7 +39,7 @@ public class ApiParserImpl implements ApiParser {
 
     private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
 
-    public ApiParserImpl(List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath,
+    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath,
             String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
         this.controllerPackages = baseControllerPackage;
         this.modelPackages = baseModelPackage;
@@ -51,6 +51,9 @@ public class ApiParserImpl implements ApiParser {
             this.servletPath = servletPath;
         }
         swaggerConfig = new SwaggerConfig();
+        if(apiInfo != null) {
+            swaggerConfig.setApiInfo(apiInfo);
+        }
         swaggerConfig.setApiPath(servletPath);
         swaggerConfig.setApiVersion(apiVersion);
         swaggerConfig.setBasePath(basePath);
@@ -73,7 +76,7 @@ public class ApiParserImpl implements ApiParser {
             count++;
         }
 
-       return new ResourceListing(apiVersion, swaggerVersion, JavaToScalaUtil.toScalaList(apiListingReferences), null, null);
+       return new ResourceListing(apiVersion, swaggerVersion, JavaToScalaUtil.toScalaList(apiListingReferences), null, swaggerConfig.info());
     }
 
     public Map<String, ApiListing> createApiListings() {

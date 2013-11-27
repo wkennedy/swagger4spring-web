@@ -2,6 +2,7 @@ package com.knappsack.swagger4springweb.controller;
 
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
+import com.wordnik.swagger.model.ApiInfo;
 import com.wordnik.swagger.model.ApiListing;
 import com.wordnik.swagger.model.ResourceListing;
 import org.springframework.stereotype.Controller;
@@ -31,6 +32,7 @@ public class ApiDocumentationController {
     private List<String> ignorableAnnotations = new ArrayList<String>();
     private boolean ignoreUnusedPathVariables = true;
     private ResourceListing resourceList;
+    private ApiInfo apiInfo;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -143,7 +145,7 @@ public class ApiDocumentationController {
             if(request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
             documentation = apiParser.createApiListings();
         }
@@ -157,7 +159,7 @@ public class ApiDocumentationController {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
             resourceList = apiParser.getResourceListing(getDocs(request));
         }
@@ -213,5 +215,15 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
+    }
+
+    @SuppressWarnings("unused")
+    public ApiInfo getApiInfo() {
+        return apiInfo;
+    }
+
+    @SuppressWarnings("unused")
+    public void setApiInfo(ApiInfo apiInfo) {
+        this.apiInfo = apiInfo;
     }
 }
