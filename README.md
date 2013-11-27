@@ -29,6 +29,7 @@ servlet context.  For example:
 * additionalControllerPackage - optional - if you have more packages with controllers outside of the baseControllerPackage, specify them here.
 * additionalModelPackage - optional - if you have packages outside of the baseModelPackage that you want to scan for models, specify them here.
 * apiVersion - required - this is the version of your API
+* apiInfo - optional - if you have information you wish to provide, such as license and terms of service, set this.
 
 Once the ApiDocumentationController is wired, you may call go to your base path + /api/resourceList (ex: http://localhost/swagger4spring-web-example/api/resourceList) in order to retrieve an inventory of your APIs.  For an example JSP see this [page](https://github.com/wkennedy/swagger4spring-web-example/blob/master/src/main/webapp/WEB-INF/views/documentation.jsp).
 
@@ -70,10 +71,12 @@ The following Spring-Web annotations are supported:
 The following Swagger annotations are supported:
 
 * @Api
-* @ApiError
-* @ApiErrors
+* @ApiResponse
+* @ApiResponses
 * @ApiOperation
 * @ApiParam
+* @ApiModel
+* @ApiModelProperty
 
 ##External Links
 [Swagger Home](http://developers.helloreverb.com/swagger/ "Swagger Home")
