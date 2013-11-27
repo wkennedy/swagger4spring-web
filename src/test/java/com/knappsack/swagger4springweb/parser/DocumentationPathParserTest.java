@@ -1,7 +1,7 @@
 package com.knappsack.swagger4springweb.parser;
 
 import com.wordnik.swagger.core.ApiValues;
-import com.wordnik.swagger.core.DocumentationParameter;
+import com.wordnik.swagger.model.Parameter;
 import org.junit.Test;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class DocumentationPathParserTest {
         String resourcePath = "/owner/{ownerName}/pets/{someOther}";
         String[] methodPaths = { "/dogs/{dogId}", "/legacy/path/to/dogs/breed/{dogId}" };
 
-        List<DocumentationParameter> parameters = new DocumentationPathParser()
+        List<Parameter> parameters = new ApiPathParser()
                 .getPathParameters(resourcePath, methodPaths);
 
         assertEquals(3, parameters.size());
@@ -29,30 +29,30 @@ public class DocumentationPathParserTest {
     public void getPathParametersReturnsCorrectParameterFields() {
         String resourcePath = "/owner/{ownerName}/pets";
 
-        List<DocumentationParameter> parameters = new DocumentationPathParser().getPathParameters(resourcePath, null);
+        List<Parameter> parameters = new ApiPathParser().getPathParameters(resourcePath, null);
 
         assertEquals(1, parameters.size());
 
-        DocumentationParameter documentationParameter = parameters.get(0);
+        Parameter documentationParameter = parameters.get(0);
 
-        assertEquals("ownerName", documentationParameter.getName());
-        assertEquals(true, documentationParameter.getRequired());
-        assertEquals(ApiValues.TYPE_PATH, documentationParameter.getParamType());
-        assertEquals("string", documentationParameter.getDataType());
-        assertEquals(String.class.getName(), documentationParameter.getValueTypeInternal());
-        assertEquals(false, documentationParameter.getAllowMultiple());
-        assertEquals("Owner name", documentationParameter.getDescription());
+        assertEquals("ownerName", documentationParameter.name());
+        assertEquals(true, documentationParameter.required());
+        assertEquals(ApiValues.TYPE_PATH(), documentationParameter.paramType());
+        assertEquals("string", documentationParameter.dataType());
+//        assertEquals(String.class.getName(), documentationParameter.getValueTypeInternal());
+        assertEquals(false, documentationParameter.allowMultiple());
+        assertEquals("Owner name", documentationParameter.description().get());
     }
 
     @Test
     public void getPathParametersReturnsEmptyListWhenBadParametersArePassed() {
-        List<DocumentationParameter> parameters = new DocumentationPathParser().getPathParameters(null, null);
+        List<Parameter> parameters = new ApiPathParser().getPathParameters(null, null);
         assertEquals(parameters.size(), 0);
     }
 
-    private boolean contains(List<DocumentationParameter> parameters, String parameter) {
-        for (DocumentationParameter documentationParameter : parameters) {
-            if (parameter.equals(documentationParameter.getName())) {
+    private boolean contains(List<Parameter> parameters, String parameter) {
+        for (Parameter documentationParameter : parameters) {
+            if (parameter.equals(documentationParameter.name())) {
                 return true;
             }
         }

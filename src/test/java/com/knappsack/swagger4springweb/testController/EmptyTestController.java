@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/v1/empty")
-@Api(value = "Test ApiExcludes", listingClass = "EmptyController", basePath = "/api/v1/empty", description = "An empty controller")
+@Api(value = "Test ApiExcludes", basePath = "/api/v1/empty", description = "An empty controller")
 public class EmptyTestController {
 
 }

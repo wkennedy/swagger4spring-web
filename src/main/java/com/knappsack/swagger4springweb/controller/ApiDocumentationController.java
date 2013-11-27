@@ -2,7 +2,9 @@ package com.knappsack.swagger4springweb.controller;
 
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
-import com.wordnik.swagger.core.Documentation;
+import com.wordnik.swagger.model.ApiInfo;
+import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.ResourceListing;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,31 +28,33 @@ public class ApiDocumentationController {
     private List<String> additionalModelPackages = new ArrayList<String>();
     private String basePath = "";
     private String apiVersion = "v1";
-    private Map<String, Documentation> documentation;
+    private Map<String, ApiListing> documentation;
     private List<String> ignorableAnnotations = new ArrayList<String>();
     private boolean ignoreUnusedPathVariables = true;
     private boolean basePathFromReferer = false;
-    private Documentation resourceList;
+    private ResourceListing resourceList;
+    private ApiInfo apiInfo;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    Documentation getResources(HttpServletRequest request) {
+    ResourceListing getResources(HttpServletRequest request) {
         return getResourceList(request);
     }
 
-    @RequestMapping(value = "/doc/**", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/resourceList/doc/**", method = RequestMethod.GET, produces = "application/json")
     public
     @ResponseBody
-    Documentation getDocumentation(HttpServletRequest request) {
+    ApiListing getDocumentation(HttpServletRequest request) {
         String handlerMappingPath = (String) request.getAttribute(
                 HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         //trim the operation request mapping from the desired value
         handlerMappingPath = handlerMappingPath.substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
 
-        Map<String, Documentation> docs = getDocs(request);
+        Map<String, ApiListing> docs = getDocs(request);
         if (docs == null) {
-            return new Documentation();
+            //TODO throw exception
+            return null;
         }
 
         return docs.get(handlerMappingPath);
@@ -97,12 +101,12 @@ public class ApiDocumentationController {
     }
 
     @SuppressWarnings("unused")
-    public Map<String, Documentation> getDocumentation() {
+    public Map<String, ApiListing> getDocumentation() {
         return documentation;
     }
 
     @SuppressWarnings("unused")
-    public void setDocumentation(Map<String, Documentation> documentation) {
+    public void setDocumentation(Map<String, ApiListing> documentation) {
         this.documentation = documentation;
     }
 
@@ -143,52 +147,27 @@ public class ApiDocumentationController {
         this.apiVersion = apiVersion;
     }
 
-    @SuppressWarnings("unused")
-    public List<String> getIgnorableAnnotations() {
-        return ignorableAnnotations;
-    }
-
-    @SuppressWarnings("unused")
-    public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
-        this.ignorableAnnotations = ignorableAnnotations;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean isIgnoreUnusedPathVariables() {
-        return ignoreUnusedPathVariables;
-    }
-
-    @SuppressWarnings("unused")
-    public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
-        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
-    }
-
-    @SuppressWarnings("unused")
-    public void setBasePathFromReferer(final boolean basePathFromReferer) {
-        this.basePathFromReferer = basePathFromReferer;
-    }
-
-    private Map<String, Documentation> getDocs(HttpServletRequest request) {
+    private Map<String, ApiListing> getDocs(HttpServletRequest request) {
         if (this.documentation == null) {
             String servletPath = null;
             if(request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
-            documentation = apiParser.createDocuments();
+            documentation = apiParser.createApiListings();
         }
         return documentation;
     }
 
-    private Documentation getResourceList(HttpServletRequest request) {
+    private ResourceListing getResourceList(HttpServletRequest request) {
         if (this.resourceList == null) {
             String servletPath = null;
             if(request != null) {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
             resourceList = apiParser.getResourceListing(getDocs(request));
         }
@@ -196,7 +175,7 @@ public class ApiDocumentationController {
     }
 
     @SuppressWarnings("unused")
-    public void setResourceList(Documentation resourceList) {
+    public void setResourceList(ResourceListing resourceList) {
         this.resourceList = resourceList;
     }
 
@@ -226,4 +205,38 @@ public class ApiDocumentationController {
         return modelPackages;
     }
 
+    @SuppressWarnings("unused")
+    public List<String> getIgnorableAnnotations() {
+        return ignorableAnnotations;
+    }
+
+    @SuppressWarnings("unused")
+    public void setIgnorableAnnotations(List<String> ignorableAnnotations) {
+        this.ignorableAnnotations = ignorableAnnotations;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isIgnoreUnusedPathVariables() {
+        return ignoreUnusedPathVariables;
+    }
+
+    @SuppressWarnings("unused")
+    public void setIgnoreUnusedPathVariables(final boolean ignoreUnusedPathVariables) {
+        this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
+    }
+
+    @SuppressWarnings("unused")
+    public void setBasePathFromReferer(final boolean basePathFromReferer) {
+        this.basePathFromReferer = basePathFromReferer;
+    }
+
+    @SuppressWarnings("unused")
+    public ApiInfo getApiInfo() {
+        return apiInfo;
+    }
+
+    @SuppressWarnings("unused")
+    public void setApiInfo(ApiInfo apiInfo) {
+        this.apiInfo = apiInfo;
+    }
 }

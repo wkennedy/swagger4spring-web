@@ -1,22 +1,22 @@
 package com.knappsack.swagger4springweb.testModels;
 
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
+
 import java.util.Collection;
 import java.util.List;
-
-import com.wordnik.swagger.annotations.ApiClass;
-import com.wordnik.swagger.annotations.ApiProperty;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-@ApiClass(value = "MockPojo", description = "A basic pojo for testing API documentation")
+@ApiModel(value = "MockPojo", description = "A basic pojo for testing API documentation")
 public class MockPojo {
 
-    @ApiProperty(value = "id", dataType = "long")
+    @ApiModelProperty(value = "id", dataType = "long")
     private long id;
-    @ApiProperty(value = "name", dataType = "String")
+    @ApiModelProperty(value = "name", dataType = "String")
     private String name;
-    @ApiProperty(value = "description", dataType = "String")
+    @ApiModelProperty(value = "description", dataType = "String")
     private String description;
 
     private Collection<MockPojoChild> children;

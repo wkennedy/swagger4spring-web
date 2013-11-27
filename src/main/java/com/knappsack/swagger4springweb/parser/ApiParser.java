@@ -1,20 +1,21 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.wordnik.swagger.core.Documentation;
+import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.ResourceListing;
 
 import java.util.Map;
 
 public interface ApiParser {
     /**
-     * @param documentationMap Map<String, Documentation> - A map of different API declarations for which you want to
+     * @param documentationMap Map<String, ApiListing> - A map of different API declarations for which you want to
      *                         create a resource listing.
-     * @return Documentation - This returns a resource listing which is an inventory of all APIs
+     * @return ResourceListing - This returns a resource listing which is an inventory of all APIs
      */
-    Documentation getResourceListing(Map<String, Documentation> documentationMap);
+    ResourceListing getResourceListing(Map<String, ApiListing> documentationMap);
 
     /**
-     * @return Map<String, Documentation> - a map of different API declarations discovered when scanning for classes
+     * @return Map - a map of different API declarations discovered when scanning for classes
      * annotated with @Controller.  The key value is the resource path of the API.
      */
-    Map<String, Documentation> createDocuments();
+    Map<String, ApiListing> createApiListings();
 }

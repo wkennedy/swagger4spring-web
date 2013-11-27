@@ -15,7 +15,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/v1/exclude2")
-@Api(value = "Test ApiExcludes", listingClass = "ExcludeSingleOpTestController", basePath = "/api/v1/exclude2", description = "Some operations to exclude")
+@Api(value = "Test ApiExcludes", basePath = "/api/v1/exclude2", description = "Some operations to exclude")
 public class ExcludeSingleOpTestController {
 
     @ApiExclude
