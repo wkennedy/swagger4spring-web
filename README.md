@@ -33,6 +33,18 @@ servlet context.  For example:
 * apiVersion - required - this is the version of your API
 * apiInfo - optional - if you have information you wish to provide, such as license and terms of service, set this.
 
+If you are using version 0.3.0 or above, you'll also need to add the following to the appropriate Spring context file in your application:
+
+    <annotation-driven>
+        <message-converters>
+            <beans:bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <beans:property name="objectMapper">
+                    <beans:bean class="com.knappsack.swagger4springweb.util.ScalaObjectMapper"/>
+                </beans:property>
+            </beans:bean>
+        </message-converters>
+    </annotation-driven>
+
 Once the ApiDocumentationController is wired, you may call go to your base path + /api/resourceList (ex: http://localhost/swagger4spring-web-example/api/resourceList) in order to retrieve an inventory of your APIs.  For an example JSP see this [page](https://github.com/wkennedy/swagger4spring-web-example/blob/master/src/main/webapp/WEB-INF/views/documentation.jsp).
 
 #####Alternative Implementation
