@@ -374,7 +374,7 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
     if (op.httpMethod() != null && op.httpMethod().trim().length() > 0)
       op.httpMethod().trim
     else {
-      val requestMapping = method.getAnnotation(classOf[RequestMapping]).method();
+      val requestMapping = method.getAnnotation(classOf[RequestMapping]).method()(0)
       if(RequestMethod.GET.equals(requestMapping)) "GET"
       else if(RequestMethod.DELETE.equals(requestMapping)) "DELETE"
 //      else if(method.getAnnotation(classOf[PATCH]) != RequestMethod.) "PATCH"
