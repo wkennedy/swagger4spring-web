@@ -4,17 +4,24 @@ import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import com.wordnik.swagger.converter.ModelConverters;
+import com.wordnik.swagger.model.Model;
 import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.Parameter;
 import com.wordnik.swagger.model.ResponseMessage;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import scala.Option;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static java.lang.String.format;
 
 public class ApiOperationParser {
 
@@ -22,7 +29,8 @@ public class ApiOperationParser {
     private List<String> ignorableAnnotations;
     private boolean ignoreUnusedPathVariables;
 
-    public ApiOperationParser(String resourcePath, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
+    public ApiOperationParser(String resourcePath, List<String> ignorableAnnotations,
+            boolean ignoreUnusedPathVariables) {
         this.ignorableAnnotations = ignorableAnnotations;
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
         this.resourcePath = resourcePath;
@@ -31,108 +39,106 @@ public class ApiOperationParser {
     public Operation getDocumentationOperation(Method method) {
 
         DocumentationOperation documentationOperation = new DocumentationOperation();
-        documentationOperation.setName(method.getName());
         documentationOperation.setNickname(method.getName());// method name
-        documentationOperation.setResponseTypeInternal(method.getReturnType().getName());
-        String responseClass;
-        Class<?> returnType = method.getReturnType();
-        if(returnType.isArray()) {
-            responseClass = returnType.getComponentType().getSimpleName();
-        } else {
-            responseClass = method.getReturnType().getSimpleName();
-        }
-        documentationOperation.setResponseClass(responseClass);
 
-        String httpMethod = "";
-        RequestMapping methodRequestMapping = method
-                .getAnnotation(RequestMapping.class);
-        if (httpMethod.isEmpty()) {
-            for (RequestMethod requestMethod : methodRequestMapping.method()) {
-                httpMethod += requestMethod.name() + " ";
+        Type returnType = method.getGenericReturnType();
+        if (returnType instanceof ParameterizedType) {
+            final ParameterizedType parameterizedType = (ParameterizedType) returnType;
+
+            if (parameterizedType.getActualTypeArguments().length == 1) {
+                final Type type = parameterizedType.getActualTypeArguments()[0];
+                if (type instanceof ParameterizedType) {
+                    documentationOperation.setResponseClass((Class<?>) ((ParameterizedType) type).getRawType());
+                } else {
+                    documentationOperation.setResponseClass((Class<?>) type);
+                }
+                documentationOperation
+                        .setResponseContainer(((Class<?>) parameterizedType.getRawType()));
+            } else {
+                // TODO what to do here?
+                // not supporting generic containing other generic
             }
         }
-        documentationOperation.getConsumes().addAll(Arrays.asList(methodRequestMapping.consumes()));
+
+        if (StringUtils.isEmpty(documentationOperation.getResponseClass())) {
+            Class<?> clazz = method.getReturnType();
+            if (clazz.isArray()) {
+                documentationOperation.setResponseClass(clazz.getComponentType());
+            } else {
+                documentationOperation.setResponseClass(clazz);
+            }
+        }
+
+        String httpMethod = "";
+        RequestMapping methodRequestMapping = method.getAnnotation(RequestMapping.class);
+        for (RequestMethod requestMethod : methodRequestMapping.method()) {
+            httpMethod += requestMethod.name() + " ";
+        }
         documentationOperation.setHttpMethod(httpMethod.trim());
-        documentationOperation.getProduces().addAll(Arrays.asList(methodRequestMapping.produces()));
+        documentationOperation.addConsumes(Arrays.asList(methodRequestMapping.consumes()));
+        documentationOperation.addProduces(Arrays.asList(methodRequestMapping.produces()));
 
         // get ApiOperation information
         ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
         if (apiOperation != null) {
-            if (!apiOperation.httpMethod().isEmpty()) {
-                httpMethod = apiOperation.httpMethod();
-            }
-            if (!(apiOperation.response() == null)) {
-                documentationOperation.setResponseClass(apiOperation.response().getName());
-            }
+            documentationOperation.setHttpMethod(apiOperation.httpMethod());
+            documentationOperation.setResponseClass(apiOperation.response());
+            documentationOperation.setResponseContainer(apiOperation.responseContainer());
+            documentationOperation.addProduces(apiOperation.produces());
+            documentationOperation.addConsumes(apiOperation.consumes());
             documentationOperation.setSummary(apiOperation.value());
             documentationOperation.setNotes(apiOperation.notes());
             documentationOperation.setPosition(apiOperation.position());
-            documentationOperation.getProduces().add(apiOperation.produces());
-            documentationOperation.getConsumes().add(apiOperation.consumes());
-            documentationOperation.getProtocols().add(apiOperation.protocols());
-            documentationOperation.getAuthorizations().add(apiOperation.authorizations());
-            documentationOperation.setHttpMethod(httpMethod);
+            documentationOperation.addProtocols(apiOperation.protocols());
+            documentationOperation.addAuthorizations(apiOperation.authorizations());
         }
 
-        ApiResponse apiError = method.getAnnotation(ApiResponse.class);
-        if (apiError != null) {
-            addError(documentationOperation, apiError);
+        ApiResponse apiResponse = method.getAnnotation(ApiResponse.class);
+        if (apiResponse != null) {
+            addResponse(documentationOperation, apiResponse);
         }
 
-        ApiResponses apiErrors = method.getAnnotation(ApiResponses.class);
-        if (apiErrors != null) {
-            ApiResponse[] errors = apiErrors.value();
-            for (ApiResponse error : errors) {
-                addError(documentationOperation, error);
+        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
+        if (apiResponses != null) {
+            ApiResponse[] responses = apiResponses.value();
+            for (ApiResponse response : responses) {
+                addResponse(documentationOperation, response);
             }
         }
 
         ApiParameterParser apiParameterParser = new ApiParameterParser(ignorableAnnotations);
-        List<Parameter> documentationParameters = apiParameterParser
-                .getApiParameters(method);
+        List<Parameter> documentationParameters = apiParameterParser.getApiParameters(method);
         documentationOperation.setParameters(documentationParameters);
         addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
 
-
-        return new Operation(documentationOperation.getHttpMethod(),
-                documentationOperation.getSummary(),
-                documentationOperation.getNotes(),
-                documentationOperation.getResponseClass(),
-                documentationOperation.getNickname(),
-                documentationOperation.getPosition(),
-                JavaToScalaUtil.toScalaList(documentationOperation.getProduces()),
-                JavaToScalaUtil.toScalaList(documentationOperation.getConsumes()),
-                JavaToScalaUtil.toScalaList(documentationOperation.getProtocols()),
-                JavaToScalaUtil.toScalaList(documentationOperation.getAuthorizations()),
-                JavaToScalaUtil.toScalaList(documentationOperation.getParameters()) ,
-                JavaToScalaUtil.toScalaList(documentationOperation.getResponseMessages()),
-                null);
+        return documentationOperation.toScalaOperation();
     }
 
-    private void addError(DocumentationOperation documentationOperation, ApiResponse apiError) {
-        Option<String> responseOption = Option.apply(apiError.response().getName());
-        ResponseMessage responseMessage = new ResponseMessage(apiError.code(), apiError.message(),responseOption);
-        documentationOperation.getResponseMessages().add(responseMessage);
+    private void addResponse(DocumentationOperation documentationOperation, ApiResponse apiResponse) {
+        Option<String> responseOption = Option.apply(apiResponse.response().getName());
+        ResponseMessage responseMessage = new ResponseMessage(apiResponse.code(), apiResponse.message(),
+                responseOption);
+        documentationOperation.addResponseMessage(responseMessage);
     }
 
     private void addUnusedPathVariables(DocumentationOperation documentationOperation, String[] methodPath) {
-        if(ignoreUnusedPathVariables){
-           return;
+        if (ignoreUnusedPathVariables) {
+            return;
         }
 
-        for(Parameter documentationParameter : new ApiPathParser().getPathParameters(resourcePath, methodPath)){
-            if(!isParameterPresented(documentationOperation, documentationParameter.name())){
-                documentationOperation.getParameters().add(documentationParameter);
+        for (Parameter documentationParameter : new ApiPathParser().getPathParameters(resourcePath, methodPath)) {
+            if (!isParameterPresented(documentationOperation, documentationParameter.name())) {
+                documentationOperation.addParameter(documentationParameter);
             }
         }
     }
 
-    private boolean isParameterPresented(DocumentationOperation documentationOperation, String parameter){
-        if(parameter == null || documentationOperation.getParameters() == null){
+    private boolean isParameterPresented(DocumentationOperation documentationOperation, String parameter) {
+        if (documentationOperation.getParameters().isEmpty()) {
             return false;
         }
-        for(Parameter documentationParameter : documentationOperation.getParameters()){
-            if(parameter.equals(documentationParameter.name())){
+        for (Parameter documentationParameter : documentationOperation.getParameters()) {
+            if (parameter.equals(documentationParameter.name())) {
                 return true;
             }
         }
@@ -141,9 +147,8 @@ public class ApiOperationParser {
 
     //This class is used as a temporary solution to create a Swagger Operation object, since the Operation is immutable
     class DocumentationOperation {
-        private String name;
+
         private String nickname;
-        private String responseTypeInternal;
         private String responseClass;
         private String summary;
         private String notes;
@@ -156,116 +161,129 @@ public class ApiOperationParser {
         private List<String> protocols = new ArrayList<String>();
         private List<String> authorizations = new ArrayList<String>();
 
-        String getName() {
-            return name;
-        }
-
-        void setName(String name) {
-            this.name = name;
-        }
-
-        String getNickname() {
-            return nickname;
+        Operation toScalaOperation() {
+            return new Operation(httpMethod,
+                    summary,
+                    notes,
+                    responseClass,
+                    nickname,
+                    position,
+                    JavaToScalaUtil.toScalaList(produces),
+                    JavaToScalaUtil.toScalaList(consumes),
+                    JavaToScalaUtil.toScalaList(protocols),
+                    JavaToScalaUtil.toScalaList(authorizations),
+                    JavaToScalaUtil.toScalaList(parameters),
+                    JavaToScalaUtil.toScalaList(responseMessages),
+                    null);
         }
 
         void setNickname(String nickname) {
             this.nickname = nickname;
         }
 
-        String getResponseTypeInternal() {
-            return responseTypeInternal;
-        }
+        void setResponseClass(Class<?> responseClass) {
+            if (responseClass == null || responseClass == Void.class) {
+                return;
+            }
 
-        void setResponseTypeInternal(String responseTypeInternal) {
-            this.responseTypeInternal = responseTypeInternal;
-        }
-
-        String getResponseClass() {
-            return responseClass;
-        }
-
-        void setResponseClass(String responseClass) {
-            this.responseClass = responseClass;
-        }
-
-        String getSummary() {
-            return summary;
+            Option<Model> model = ModelConverters.read(responseClass);
+            if (model.nonEmpty()) {
+                this.responseClass = model.get().name();
+            } else {
+                this.responseClass = responseClass.getSimpleName();
+            }
         }
 
         void setSummary(String summary) {
             this.summary = summary;
         }
 
-        String getNotes() {
-            return notes;
-        }
-
         void setNotes(String notes) {
             this.notes = notes;
         }
 
-        String getHttpMethod() {
-            return httpMethod;
-        }
-
         void setHttpMethod(String httpMethod) {
+            if (StringUtils.isEmpty(httpMethod)) {
+                return;
+            }
             this.httpMethod = httpMethod;
-        }
-
-        List<Parameter> getParameters() {
-            return parameters;
         }
 
         void setParameters(List<Parameter> parameters) {
             this.parameters = parameters;
         }
 
-        List<ResponseMessage> getResponseMessages() {
-            return responseMessages;
-        }
-
-        void setResponseMessages(List<ResponseMessage> responseMessages) {
-            this.responseMessages = responseMessages;
-        }
-
-        int getPosition() {
-            return position;
-        }
-
         void setPosition(int position) {
             this.position = position;
         }
 
-        List<String> getProduces() {
-            return produces;
+        void addConsumes(final List<String> consumes) {
+            this.consumes.addAll(consumes);
         }
 
-        void setProduces(List<String> produces) {
-            this.produces = produces;
+        void addProduces(final List<String> produces) {
+            this.produces.addAll(produces);
         }
 
-        List<String> getConsumes() {
-            return consumes;
+        public void addResponseMessage(final ResponseMessage responseMessage) {
+            this.responseMessages.add(responseMessage);
         }
 
-        void setConsumes(List<String> consumes) {
-            this.consumes = consumes;
+        public List<Parameter> getParameters() {
+            return parameters;
         }
 
-        List<String> getProtocols() {
-            return protocols;
+        public void addParameter(final Parameter parameter) {
+            this.parameters.add(parameter);
         }
 
-        void setProtocols(List<String> protocols) {
-            this.protocols = protocols;
+        public void addAuthorizations(final String authorizations) {
+            if (StringUtils.isEmpty(authorizations)) {
+                return;
+            }
+            this.authorizations.add(authorizations);
         }
 
-        List<String> getAuthorizations() {
-            return authorizations;
+        void addProtocols(final String protocols) {
+            if (StringUtils.isEmpty(protocols)) {
+                return;
+            }
+            this.protocols.add(protocols);
         }
 
-        void setAuthorizations(List<String> authorizations) {
-            this.authorizations = authorizations;
+        public void addProduces(final String produces) {
+            if (StringUtils.isEmpty(produces)) {
+                return;
+            }
+            this.produces.add(produces);
         }
+
+        public void addConsumes(final String consumes) {
+            if (StringUtils.isEmpty(consumes)) {
+                return;
+            }
+            this.consumes.add(consumes);
+        }
+
+        public void setResponseContainer(final String container) {
+            if (StringUtils.isEmpty(container)) {
+                return;
+            }
+            this.responseClass = format("%s[%s]", container, responseClass);
+        }
+
+        public void setResponseContainer(final Class<?> type) {
+            Option<Model> model = ModelConverters.read(type);
+            if (model.nonEmpty()) {
+                setResponseContainer(model.get().name());
+            } else {
+                setResponseContainer(type.getSimpleName());
+            }
+        }
+
+        public String getResponseClass() {
+            return responseClass;
+        }
+
     }
 }

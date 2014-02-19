@@ -3,6 +3,7 @@ package com.knappsack.swagger4springweb.parser;
 import com.knappsack.swagger4springweb.annotation.ApiExclude;
 import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.util.ApiUtils;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
@@ -25,6 +26,7 @@ import java.util.*;
 import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class ApiParserImpl implements ApiParser {
+
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
     private List<String> controllerPackages = new ArrayList<String>();
@@ -39,7 +41,8 @@ public class ApiParserImpl implements ApiParser {
 
     private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
 
-    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, List<String> baseModelPackage, String basePath, String servletPath,
+    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, List<String> baseModelPackage,
+            String basePath, String servletPath,
             String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
         this.controllerPackages = baseControllerPackage;
         this.modelPackages = baseModelPackage;
@@ -51,7 +54,7 @@ public class ApiParserImpl implements ApiParser {
             this.servletPath = servletPath;
         }
         swaggerConfig = new SwaggerConfig();
-        if(apiInfo != null) {
+        if (apiInfo != null) {
             swaggerConfig.setApiInfo(apiInfo);
         }
         swaggerConfig.setApiPath(servletPath);
@@ -70,13 +73,15 @@ public class ApiParserImpl implements ApiParser {
             if (!key.startsWith("/")) {
                 docPath = docPath + "/";
             }
-            ApiListingReference apiListingReference = new ApiListingReference(docPath + key, apiListing.description(), count);
+            ApiListingReference apiListingReference = new ApiListingReference(docPath + key, apiListing.description(),
+                    count);
 
             apiListingReferences.add(apiListingReference);
             count++;
         }
 
-       return new ResourceListing(apiVersion, swaggerVersion, JavaToScalaUtil.toScalaList(apiListingReferences), null, swaggerConfig.info());
+        return new ResourceListing(apiVersion, swaggerVersion, JavaToScalaUtil.toScalaList(apiListingReferences), null,
+                swaggerConfig.info());
     }
 
     public Map<String, ApiListing> createApiListings() {
@@ -100,14 +105,15 @@ public class ApiParserImpl implements ApiParser {
                 continue;
             }
 
-            Set<Method> requestMappingMethods = Reflections.getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
+            Set<Method> requestMappingMethods = Reflections
+                    .getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
             ApiListing apiListing = processControllerApi(controllerClass);
             String description = "";
             Api controllerApi = controllerClass.getAnnotation(Api.class);
             if (controllerApi != null) {
                 description = controllerApi.description();
             } else {
-                if(apiListing.apis() == null) {
+                if (apiListing.apis() == null) {
                     apiListing = processMethods(requestMappingMethods, apiListing, description);
                     //Loop over operations 'methods'
                     //processMethods(requestMappingMethods, apiListing, description);
@@ -136,7 +142,8 @@ public class ApiParserImpl implements ApiParser {
 
         if (controllerApi == null || resourcePath.isEmpty()) {
             RequestMapping controllerRequestMapping = controllerClass.getAnnotation(RequestMapping.class);
-            if (controllerRequestMapping != null && controllerRequestMapping.value() != null && controllerRequestMapping.value().length > 0) {
+            if (controllerRequestMapping != null && controllerRequestMapping.value() != null &&
+                    controllerRequestMapping.value().length > 0) {
                 resourcePath = controllerRequestMapping.value()[0];
             } else {
                 resourcePath = controllerClass.getName();
@@ -146,26 +153,27 @@ public class ApiParserImpl implements ApiParser {
         SpringApiReader reader = new SpringApiReader();
         Option<ApiListing> apiListingOption = reader.read(resourcePath, controllerClass, swaggerConfig);
         ApiListing apiListing = null;
-        if(apiListingOption.nonEmpty()) {
-            apiListing = reader.read(resourcePath, controllerClass, swaggerConfig).get();
+        if (apiListingOption.nonEmpty()) {
+            apiListing = apiListingOption.get();
         }
 
         //Allow for multiple controllers having the same resource path.
         ApiListing existingApiListing = apiListingMap.get(resourcePath);
-        if (existingApiListing != null){
-           return existingApiListing;
+        if (existingApiListing != null) {
+            return existingApiListing;
         }
 
-        if(apiListing != null) {
+        if (apiListing != null) {
             return apiListing;
         }
 
-        return new ApiListing(apiVersion, swaggerVersion, basePath, resourcePath, null, null, null, null, null, null, null, 0);
+        return new ApiListing(apiVersion, swaggerVersion, basePath, resourcePath, null, null, null, null, null, null,
+                null, 0);
     }
 
     private ApiListing processMethods(Collection<Method> methods, ApiListing apiListing, String description) {
         Map<String, ApiDescription> endPointMap = new HashMap<String, ApiDescription>();
-        
+
         populateApiDescriptionMapForApiListing(apiListing, endPointMap);
 
         for (Method method : methods) {
@@ -175,10 +183,10 @@ public class ApiParserImpl implements ApiParser {
 
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
             ApiDescriptionParser documentationEndPointParser = new ApiDescriptionParser();
-            ApiDescription apiDescription = documentationEndPointParser.getApiDescription(method, description, apiListing.resourcePath());
+            ApiDescription apiDescription = documentationEndPointParser
+                    .getApiDescription(method, description, apiListing.resourcePath());
             if (!endPointMap.containsKey(requestMappingValue)) {
                 endPointMap.put(requestMappingValue, apiDescription);
-//                documentation.apis().add(documentationEndPoint);
             }
         }
 
@@ -190,13 +198,13 @@ public class ApiParserImpl implements ApiParser {
 
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
             List<Operation> operations = operationMap.get(value);
-            if(operations == null) {
+            if (operations == null) {
                 operations = new ArrayList<Operation>();
                 operationMap.put(value, operations);
             }
-//            ApiDescription documentationEndPoint = endPointMap.get(value);
 
-            ApiOperationParser apiOperationParser = new ApiOperationParser(apiListing.resourcePath(), ignorableAnnotations, ignoreUnusedPathVariables);
+            ApiOperationParser apiOperationParser = new ApiOperationParser(apiListing.resourcePath(),
+                    ignorableAnnotations, ignoreUnusedPathVariables);
             Operation operation = apiOperationParser.getDocumentationOperation(method);
             operations.add(operation);
         }
@@ -204,43 +212,34 @@ public class ApiParserImpl implements ApiParser {
         List<ApiDescription> newApiDescriptions = new ArrayList<ApiDescription>();
         for (String key : endPointMap.keySet()) {
             ApiDescription apiDescription = endPointMap.get(key);
-            ApiDescription newApiDescription = new ApiDescription(apiDescription.path(), apiDescription.description(), JavaToScalaUtil.toScalaList(operationMap.get(key)));
+            ApiDescription newApiDescription = new ApiDescription(apiDescription.path(), apiDescription.description(),
+                    JavaToScalaUtil.toScalaList(operationMap.get(key)));
             newApiDescriptions.add(newApiDescription);
         }
 
-        Map<String, Model> modelMap = new HashMap<String, Model>();
         for (Method method : methods) {
             ApiModelParser apiModelParser = new ApiModelParser();
-            modelMap.putAll(apiModelParser.getResponseBodyModels(method));
-//            for (String key : documentationSchemaMap.keySet()) {
-//                documentation.models().add(key, documentationSchemaMap.get(key));
-//            }
-//
-//            Map<String, Option<Model>> parameterDocumentationSchemaMap = apiModelParser.getParameterDocumentationSchema(method);
-//            for (String key : parameterDocumentationSchemaMap.keySet()) {
-//                documentation.models().add(key, parameterDocumentationSchemaMap.get(key));
-//            }
+            apiListingModels.putAll(apiModelParser.getResponseBodyModels(method));
         }
 
-//        Map<String, Model> apiListingModels = createApiListingModels();
+        Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option
+                .apply(JavaToScalaUtil.toScalaImmutableMap(apiListingModels));
 
-//        Option.<scala.collection.immutable.Map<String,Model>>empty();
-//        ScalaToJavaUtil.toScalaImmutableMap(documentationSchemaMap);
-        Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option.apply(JavaToScalaUtil.toScalaImmutableMap(apiListingModels));
-
-        return new ApiListing(apiListing.apiVersion(), apiListing.swaggerVersion(), apiListing.basePath(), apiListing.resourcePath(),
-                apiListing.produces(), apiListing.consumes(), apiListing.protocols(), apiListing.authorizations(), JavaToScalaUtil.toScalaList(newApiDescriptions), modelOptions,
+        return new ApiListing(apiListing.apiVersion(), apiListing.swaggerVersion(), apiListing.basePath(),
+                apiListing.resourcePath(), apiListing.produces(), apiListing.consumes(), apiListing.protocols(),
+                apiListing.authorizations(), JavaToScalaUtil.toScalaList(newApiDescriptions), modelOptions,
                 apiListing.description(), apiListing.position());
     }
 
-    private void populateApiDescriptionMapForApiListing(ApiListing apiListing, Map<String, ApiDescription> apiDescriptionMap){
-       if (apiListing.apis() != null){
+    private void populateApiDescriptionMapForApiListing(ApiListing apiListing,
+            Map<String, ApiDescription> apiDescriptionMap) {
+        if (apiListing.apis() != null) {
 
-          List<ApiDescription> apiDescriptions = ScalaToJavaUtil.toJavaList(apiListing.apis());
-          for (ApiDescription apiDescription : apiDescriptions){
-             apiDescriptionMap.put(apiDescription.path(), apiDescription);
-          }
-       }
+            List<ApiDescription> apiDescriptions = ScalaToJavaUtil.toJavaList(apiListing.apis());
+            for (ApiDescription apiDescription : apiDescriptions) {
+                apiDescriptionMap.put(apiDescription.path(), apiDescription);
+            }
+        }
     }
 
     private void createApiListingModels() {
@@ -253,28 +252,7 @@ public class ApiParserImpl implements ApiParser {
                     .setScanners(new SubTypesScanner(false), new ResourcesScanner()));
             Set<Class<? extends Object>> allModelClasses = reflections.getSubTypesOf(Object.class);
             for (Class<? extends Object> clazz : allModelClasses) {
-                Model model = null;
-//                ApiModelParser parser;
-                String schemaName;
-                if (clazz.isArray()) {
-//                    parser = new ApiModelParser(clazz.getComponentType());
-                    schemaName = clazz.getComponentType().getSimpleName();
-                    Option<Model> modelOption = ModelConverters.read(clazz.getComponentType());
-                    if(modelOption.nonEmpty()) {
-                        model = modelOption.get();
-                    }
-                } else {
-//                    parser = new ApiModelParser(clazz);
-                    schemaName = clazz.getSimpleName();
-                    Option<Model> modelOption = ModelConverters.read(clazz);
-                    if(modelOption.nonEmpty()) {
-                        model = modelOption.get();
-                    }
-                }
-                if(model != null) {
-                    modelMap.put(schemaName, model);
-                }
-//                documentation.addModel(schemaName, parser.parse().toDocumentationSchema());
+                ApiUtils.addModels(clazz, modelMap);
             }
         }
         apiListingModels = modelMap;
