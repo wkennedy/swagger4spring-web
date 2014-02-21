@@ -11,11 +11,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
-/**
- * Author: andrey.antonov
- * Date: 7/3/13
- */
-public class ApiUtils {
+public class ModelUtils {
 
     public static String getSwaggerTypeFor(Class<?> parameterType) {
         Class type = parameterType;
@@ -65,14 +61,15 @@ public class ApiUtils {
     }
 
     static boolean isIgnorableModel(String name) {
-        return name.equalsIgnoreCase("map") || name.equalsIgnoreCase("list") || name.equalsIgnoreCase("string");
+        return name.equalsIgnoreCase("map") || name.equalsIgnoreCase("list") || name.equalsIgnoreCase("string")
+                || name.equalsIgnoreCase("set") || name.equalsIgnoreCase("collection");
     }
 
-    public static void addModels(final Class<? extends Object> clazz, final Map<String, Model> models) {
+    public static void addModels(final Class<?> clazz, final Map<String, Model> models) {
         scala.collection.immutable.List<Model> modelOption = ModelConverters.readAll(clazz);
-        scala.collection.Iterator<Model> iter = modelOption.iterator();
-        while (iter.hasNext()) {
-            Model model = iter.next();
+        scala.collection.Iterator<Model> iterator = modelOption.iterator();
+        while (iterator.hasNext()) {
+            Model model = iterator.next();
             if (!isIgnorableModel(model.name())) {
                 models.put(model.name(), model);
             }

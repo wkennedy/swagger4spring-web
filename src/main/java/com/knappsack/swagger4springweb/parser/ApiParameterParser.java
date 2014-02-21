@@ -2,17 +2,15 @@ package com.knappsack.swagger4springweb.parser;
 
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
-import com.knappsack.swagger4springweb.util.ApiUtils;
+import com.knappsack.swagger4springweb.util.ModelUtils;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.model.AllowableListValues;
 import com.wordnik.swagger.model.AllowableValues;
+import com.wordnik.swagger.model.Model;
 import com.wordnik.swagger.model.Parameter;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import scala.Option;
 
 import java.lang.annotation.Annotation;
@@ -20,49 +18,50 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class ApiParameterParser {
 
+    private Map<String, Model> models;
     private List<String> ignorableAnnotations;
 
-    public ApiParameterParser() {
-        ignorableAnnotations = new ArrayList<String>();
-    }
-
-    public ApiParameterParser(List<String> ignorableAnnotations) {
+    public ApiParameterParser(List<String> ignorableAnnotations, final Map<String, Model> models) {
         this.ignorableAnnotations = ignorableAnnotations;
+        this.models = models;
     }
 
-    public List<Parameter> getApiParameters(Method method) {
-		List<Parameter> documentationParameters = new ArrayList<Parameter>();
-		List<AnnotatedParameter> annotatedParameters = AnnotationUtils
-				.getAnnotatedParameters(method);
+    public List<Parameter> parseApiParametersAndArgumentModels(Method method) {
+        List<Parameter> documentationParameters = new ArrayList<Parameter>();
+
+        List<AnnotatedParameter> annotatedParameters = AnnotationUtils
+                .getAnnotatedParameters(method);
 
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
-            if(hasIgnorableAnnotations(annotatedParameter.getAnnotations())) {
-               continue;
+            if (hasIgnorableAnnotations(annotatedParameter.getAnnotations())) {
+                continue;
             }
+
+            // Adding processed model
+            ModelUtils.addModels(annotatedParameter.getParameterType(), models);
 
             DocumentationParameter documentationParameter = new DocumentationParameter();
 
-			// default values from the Method
-            String dataType = ApiUtils.getSwaggerTypeFor(annotatedParameter.getParameterType());
-			documentationParameter.setDataType(ApiUtils.getSwaggerTypeFor(annotatedParameter.getParameterType()));
-//            String name = annotatedParameter.getParameterName();
-			documentationParameter.setName(annotatedParameter.getParameterName());
-//			documentationParameter.setValueTypeInternal(annotatedParameter.getParameterType().getName());
-            boolean allowMultiple = ApiUtils.isAllowMultiple(annotatedParameter.getParameterType());
+            // default values from the Method
+            String dataType = ModelUtils.getSwaggerTypeFor(annotatedParameter.getParameterClass());
+            documentationParameter.setDataType(ModelUtils.getSwaggerTypeFor(annotatedParameter.getParameterClass()));
+            documentationParameter.setName(annotatedParameter.getParameterName());
+            boolean allowMultiple = ModelUtils.isAllowMultiple(annotatedParameter.getParameterClass());
             documentationParameter.setAllowMultiple(allowMultiple);
             // apply default values from spring annotations first
-			for (Annotation annotation : annotatedParameter.getAnnotations()) {
-				addSpringParams(annotation, documentationParameter);
-			}
-			// apply swagger annotations
-			for (Annotation annotation : annotatedParameter.getAnnotations()) {
-				if (annotation instanceof ApiParam) {
-					addApiParams((ApiParam) annotation, documentationParameter);
-				}
-			}
+            for (Annotation annotation : annotatedParameter.getAnnotations()) {
+                addSpringParams(annotation, documentationParameter);
+            }
+            // apply swagger annotations
+            for (Annotation annotation : annotatedParameter.getAnnotations()) {
+                if (annotation instanceof ApiParam) {
+                    addApiParams((ApiParam) annotation, documentationParameter);
+                }
+            }
 
             Option<String> descriptionOption = Option.apply(documentationParameter.getDescription());
             Option<String> defaultValueOption = Option.apply(documentationParameter.getDefaultValue());
@@ -70,14 +69,15 @@ public class ApiParameterParser {
 
             Parameter parameter =
                     new Parameter(documentationParameter.getName(), descriptionOption, defaultValueOption,
-                            documentationParameter.isRequired(), documentationParameter.isAllowMultiple(), dataType, documentationParameter.getAllowableValues(),
+                            documentationParameter.isRequired(), documentationParameter.isAllowMultiple(), dataType,
+                            documentationParameter.getAllowableValues(),
                             documentationParameter.getParamType(), paramAccessOption);
 
             documentationParameters.add(parameter);
-		}
+        }
 
-		return documentationParameters;
-	}
+        return documentationParameters;
+    }
 
     private void addSpringParams(Annotation annotation, DocumentationParameter documentationParameter) {
         if (annotation instanceof RequestParam) {
@@ -86,12 +86,23 @@ public class ApiParameterParser {
         if (annotation instanceof RequestHeader) {
             addRequestHeader((RequestHeader) annotation, documentationParameter);
         }
-        if(annotation instanceof RequestBody) {
+        if (annotation instanceof RequestBody) {
             addRequestBody(documentationParameter);
         }
-        if(annotation instanceof PathVariable) {
+        if (annotation instanceof PathVariable) {
             addPathVariable((PathVariable) annotation, documentationParameter);
         }
+        if (annotation instanceof ModelAttribute) {
+            addModelAttribute((ModelAttribute) annotation, documentationParameter);
+        }
+    }
+
+    private void addModelAttribute(final ModelAttribute modelAttribute,
+            final DocumentationParameter documentationParameter) {
+        if (ModelUtils.isSet(modelAttribute.value())) {
+            documentationParameter.setName(modelAttribute.value());
+        }
+        documentationParameter.setParamType(ApiValues.TYPE_FORM());
     }
 
     private void addRequestBody(DocumentationParameter documentationParameter) {
@@ -100,7 +111,7 @@ public class ApiParameterParser {
     }
 
     private void addPathVariable(PathVariable pathVariable, DocumentationParameter documentationParameter) {
-        if (ApiUtils.isSet(pathVariable.value())) {
+        if (ModelUtils.isSet(pathVariable.value())) {
             documentationParameter.setName(pathVariable.value());
         }
 
@@ -108,62 +119,63 @@ public class ApiParameterParser {
         documentationParameter.setParamType(ApiValues.TYPE_PATH());
     }
 
-	private void addRequestParams(RequestParam requestParam,
-                                  DocumentationParameter documentationParameter) {
-		if (ApiUtils.isSet(requestParam.value())) {
-			documentationParameter.setName(requestParam.value());
-		}
-		if (ApiUtils.isSet(requestParam.defaultValue())) {
-			documentationParameter.setDefaultValue(requestParam.defaultValue());
-		}
-		documentationParameter.setRequired(requestParam.required());
-        if("file".equals(documentationParameter.getDataType())) {
+    private void addRequestParams(RequestParam requestParam,
+            DocumentationParameter documentationParameter) {
+        if (ModelUtils.isSet(requestParam.value())) {
+            documentationParameter.setName(requestParam.value());
+        }
+        if (ModelUtils.isSet(requestParam.defaultValue())) {
+            documentationParameter.setDefaultValue(requestParam.defaultValue());
+        }
+        documentationParameter.setRequired(requestParam.required());
+        if ("file".equals(documentationParameter.getDataType())) {
             documentationParameter.setParamType(ApiValues.TYPE_FORM());
         } else {
             documentationParameter.setParamType(ApiValues.TYPE_QUERY());
         }
-	}
+    }
 
-	private void addRequestHeader(RequestHeader requestHeader,
-                                  DocumentationParameter documentationParameter) {
-		if (ApiUtils.isSet(requestHeader.value())) {
-			documentationParameter.setName(requestHeader.value());
-		}
-		if (ApiUtils.isSet(requestHeader.defaultValue())) {
-			documentationParameter.setDefaultValue(requestHeader.defaultValue());
-		}
-		documentationParameter.setRequired(requestHeader.required());
-		documentationParameter.setParamType(ApiValues.TYPE_HEADER());
-	}
+    private void addRequestHeader(RequestHeader requestHeader,
+            DocumentationParameter documentationParameter) {
+        if (ModelUtils.isSet(requestHeader.value())) {
+            documentationParameter.setName(requestHeader.value());
+        }
+        if (ModelUtils.isSet(requestHeader.defaultValue())) {
+            documentationParameter.setDefaultValue(requestHeader.defaultValue());
+        }
+        documentationParameter.setRequired(requestHeader.required());
+        documentationParameter.setParamType(ApiValues.TYPE_HEADER());
+    }
 
-	private void addApiParams(ApiParam apiParam, DocumentationParameter documentationParameter) {
-		if (ApiUtils.isSet(apiParam.allowableValues())) {
-			// we use only one simple string
+    private void addApiParams(ApiParam apiParam, DocumentationParameter documentationParameter) {
+        if (ModelUtils.isSet(apiParam.allowableValues())) {
+            // we use only one simple string
             List<String> allowableValues = Arrays.asList(apiParam.allowableValues().split("\\s*,\\s*"));
-			documentationParameter.setAllowableValues(new AllowableListValues(JavaToScalaUtil.toScalaList(allowableValues), "LIST"));
-		}
-		documentationParameter.setAllowMultiple(apiParam.allowMultiple());
+            documentationParameter
+                    .setAllowableValues(new AllowableListValues(JavaToScalaUtil.toScalaList(allowableValues), "LIST"));
+        }
+        documentationParameter.setAllowMultiple(apiParam.allowMultiple());
 
-		if (ApiUtils.isSet(apiParam.defaultValue())) {
-			documentationParameter.setDefaultValue(apiParam.defaultValue());
-		}
-		documentationParameter.setDescription(apiParam.value());
-		// overwrite default name
-		if (ApiUtils.isSet(apiParam.name())) {
-			documentationParameter.setName(apiParam.name());
-		}
-		// documentationParameter.setNotes(apiParam.);
-		documentationParameter.setParamAccess(apiParam.access());
-		// required is default true in the annotation
-		// so if its false, der RequestParam has set it
-		if (!documentationParameter.isRequired()) {
-			documentationParameter.setRequired(apiParam.required());
-		}
-	}
+        if (ModelUtils.isSet(apiParam.defaultValue())) {
+            documentationParameter.setDefaultValue(apiParam.defaultValue());
+        }
+        documentationParameter.setDescription(apiParam.value());
+        // overwrite default name
+        if (ModelUtils.isSet(apiParam.name())) {
+            documentationParameter.setName(apiParam.name());
+        }
+        // documentationParameter.setNotes(apiParam.);
+        documentationParameter.setParamAccess(apiParam.access());
+        // required is default true in the annotation
+        // so if its false, der RequestParam has set it
+        if (!documentationParameter.isRequired()) {
+            documentationParameter.setRequired(apiParam.required());
+        }
+    }
 
     private boolean hasIgnorableAnnotations(List<Annotation> annotations) {
-        for(Annotation annotation : annotations) {
-            if(ignorableAnnotations.contains(annotation.annotationType().getCanonicalName())) {
+        for (Annotation annotation : annotations) {
+            if (ignorableAnnotations.contains(annotation.annotationType().getCanonicalName())) {
                 return true;
             }
         }
@@ -171,6 +183,7 @@ public class ApiParameterParser {
     }
 
     class DocumentationParameter {
+
         private String name;
         private String description;
         private String defaultValue;

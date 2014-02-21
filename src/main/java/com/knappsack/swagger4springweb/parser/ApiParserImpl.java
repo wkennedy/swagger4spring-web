@@ -3,19 +3,12 @@ package com.knappsack.swagger4springweb.parser;
 import com.knappsack.swagger4springweb.annotation.ApiExclude;
 import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
-import com.knappsack.swagger4springweb.util.ApiUtils;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.config.SwaggerConfig;
-import com.wordnik.swagger.converter.ModelConverters;
 import com.wordnik.swagger.model.*;
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import scala.Option;
@@ -30,29 +23,21 @@ public class ApiParserImpl implements ApiParser {
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
     private List<String> controllerPackages = new ArrayList<String>();
-    private List<String> modelPackages = new ArrayList<String>();
     private String basePath = "";
-    private String servletPath = "/api";
     private String apiVersion = "v1";
     private List<String> ignorableAnnotations;
     private boolean ignoreUnusedPathVariables;
     private SwaggerConfig swaggerConfig;
-    private Map<String, Model> apiListingModels;
 
     private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
 
-    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, List<String> baseModelPackage,
-            String basePath, String servletPath,
+    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, String basePath, String servletPath,
             String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
         this.controllerPackages = baseControllerPackage;
-        this.modelPackages = baseModelPackage;
         this.ignorableAnnotations = ignorableAnnotations;
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
-        if (servletPath != null && !servletPath.isEmpty()) {
-            this.servletPath = servletPath;
-        }
         swaggerConfig = new SwaggerConfig();
         if (apiInfo != null) {
             swaggerConfig.setApiInfo(apiInfo);
@@ -61,7 +46,6 @@ public class ApiParserImpl implements ApiParser {
         swaggerConfig.setApiVersion(apiVersion);
         swaggerConfig.setBasePath(basePath);
         swaggerConfig.setSwaggerVersion(swaggerVersion);
-        createApiListingModels();
     }
 
     public ResourceListing getResourceListing(Map<String, ApiListing> apiListingMap) {
@@ -112,16 +96,10 @@ public class ApiParserImpl implements ApiParser {
             Api controllerApi = controllerClass.getAnnotation(Api.class);
             if (controllerApi != null) {
                 description = controllerApi.description();
-            } else {
-                if (apiListing.apis() == null) {
-                    apiListing = processMethods(requestMappingMethods, apiListing, description);
-                    //Loop over operations 'methods'
-                    //processMethods(requestMappingMethods, apiListing, description);
-                    if (modelPackages != null && !modelPackages.isEmpty()) {
-                        //todo - do the models need to be added to the ApiListing.  Can this be removed?
-                        createApiListingModels();
-                    }
-                }
+            }
+
+            if (apiListing.apis() == null) {
+                apiListing = processMethods(requestMappingMethods, apiListing, description);
             }
 
             // controllers without any operations are excluded from the apiListingMap list
@@ -184,11 +162,13 @@ public class ApiParserImpl implements ApiParser {
             String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
             ApiDescriptionParser documentationEndPointParser = new ApiDescriptionParser();
             ApiDescription apiDescription = documentationEndPointParser
-                    .getApiDescription(method, description, apiListing.resourcePath());
+                    .parseApiDescription(method, description, apiListing.resourcePath());
             if (!endPointMap.containsKey(requestMappingValue)) {
                 endPointMap.put(requestMappingValue, apiDescription);
             }
         }
+
+        Map<String, Model> models = new HashMap<String, Model>();
 
         Map<String, List<Operation>> operationMap = new HashMap<String, List<Operation>>();
         for (Method method : methods) {
@@ -204,8 +184,8 @@ public class ApiParserImpl implements ApiParser {
             }
 
             ApiOperationParser apiOperationParser = new ApiOperationParser(apiListing.resourcePath(),
-                    ignorableAnnotations, ignoreUnusedPathVariables);
-            Operation operation = apiOperationParser.getDocumentationOperation(method);
+                    ignorableAnnotations, ignoreUnusedPathVariables, models);
+            Operation operation = apiOperationParser.parseDocumentationOperation(method);
             operations.add(operation);
         }
 
@@ -217,13 +197,13 @@ public class ApiParserImpl implements ApiParser {
             newApiDescriptions.add(newApiDescription);
         }
 
+        ApiModelParser apiModelParser = new ApiModelParser(models);
         for (Method method : methods) {
-            ApiModelParser apiModelParser = new ApiModelParser();
-            apiListingModels.putAll(apiModelParser.getResponseBodyModels(method));
+            apiModelParser.parseResponseBodyModels(method);
         }
 
         Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option
-                .apply(JavaToScalaUtil.toScalaImmutableMap(apiListingModels));
+                .apply(JavaToScalaUtil.toScalaImmutableMap(models));
 
         return new ApiListing(apiListing.apiVersion(), apiListing.swaggerVersion(), apiListing.basePath(),
                 apiListing.resourcePath(), apiListing.produces(), apiListing.consumes(), apiListing.protocols(),
@@ -240,21 +220,5 @@ public class ApiParserImpl implements ApiParser {
                 apiDescriptionMap.put(apiDescription.path(), apiDescription);
             }
         }
-    }
-
-    private void createApiListingModels() {
-        Map<String, Model> modelMap = new HashMap<String, Model>();
-
-        for (String modelPackage : modelPackages) {
-            Reflections reflections = new Reflections(new ConfigurationBuilder()
-                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(modelPackage)))
-                    .setUrls(ClasspathHelper.forPackage(modelPackage))
-                    .setScanners(new SubTypesScanner(false), new ResourcesScanner()));
-            Set<Class<? extends Object>> allModelClasses = reflections.getSubTypesOf(Object.class);
-            for (Class<? extends Object> clazz : allModelClasses) {
-                ApiUtils.addModels(clazz, modelMap);
-            }
-        }
-        apiListingModels = modelMap;
     }
 }

@@ -49,7 +49,7 @@ public class AnnotationUtilsTest extends AbstractTest {
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
             assertTrue(listContainsType(annotatedParameter.getAnnotations(), ApiParam.class));
             assertTrue(annotatedParameter.getParameterName().equals("testVariable"));
-            assertTrue(annotatedParameter.getParameterType().isAssignableFrom(String.class));
+            assertTrue(annotatedParameter.getParameterClass().isAssignableFrom(String.class));
         }
     }
 
@@ -62,7 +62,7 @@ public class AnnotationUtilsTest extends AbstractTest {
         for (AnnotatedParameter annotatedParameter : annotatedParameters) {
             assertTrue(listContainsType(annotatedParameter.getAnnotations(),  PathVariable.class));
             assertTrue(annotatedParameter.getParameterName().equals("testVariable"));
-            assertTrue(annotatedParameter.getParameterType().isAssignableFrom(String.class));
+            assertTrue(annotatedParameter.getParameterClass().isAssignableFrom(String.class));
         }
     }
 

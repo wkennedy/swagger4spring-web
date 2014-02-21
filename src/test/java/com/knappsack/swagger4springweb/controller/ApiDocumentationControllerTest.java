@@ -20,7 +20,6 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         ApiDocumentationController apiDocumentationController = new ApiDocumentationController();
         apiDocumentationController.setApiVersion("v1");
         apiDocumentationController.setBaseControllerPackage(BASE_CONTROLLER_PACKAGE);
-        apiDocumentationController.setBaseModelPackage(BASE_MODEL_PACKAGE);
         apiDocumentationController.setBasePath("http://localhost/swagger4spring-web-example");
         ApiListing documentation = apiDocumentationController.getDocumentation(servletRequest);
         assertNotNull(documentation);
@@ -35,7 +34,6 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         ApiDocumentationController apiDocumentationController = new ApiDocumentationController();
         apiDocumentationController.setApiVersion("v1");
         apiDocumentationController.setBaseControllerPackage(BASE_CONTROLLER_PACKAGE);
-        apiDocumentationController.setBaseModelPackage(BASE_MODEL_PACKAGE);
         apiDocumentationController.setBasePath("http://localhost/swagger4spring-web-example");
 
         ResourceListing documentation = apiDocumentationController.getResources(servletRequest);

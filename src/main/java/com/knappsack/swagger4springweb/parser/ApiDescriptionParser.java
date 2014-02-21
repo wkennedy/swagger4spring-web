@@ -15,7 +15,7 @@ public class ApiDescriptionParser {
      * @param resourcePath String - the path of this API. For Spring MVC this would be the value of the RequestMapping
      * @return ApiDescription
      */
-    public ApiDescription getApiDescription(Method method, String description, String resourcePath) {
+    public ApiDescription parseApiDescription(Method method, String description, String resourcePath) {
         String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
         String path;
         if (resourcePath != null && !resourcePath.isEmpty()) {

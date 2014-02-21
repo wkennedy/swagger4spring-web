@@ -74,10 +74,10 @@ public class ApiParserTest extends AbstractTest {
     }
 
     private ApiParser createApiParser() {
-        return createApiParser(Arrays.asList(BASE_CONTROLLER_PACKAGE), Arrays.asList(BASE_MODEL_PACKAGE));
+        return createApiParser(Arrays.asList(BASE_CONTROLLER_PACKAGE));
     }
 
-    private ApiParser createApiParser(List<String> controllerPackages, List<String> modelPackages) {
-        return new ApiParserImpl(API_INFO, controllerPackages, modelPackages, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>(), true);
+    private ApiParser createApiParser(List<String> controllerPackages) {
+        return new ApiParserImpl(API_INFO, controllerPackages, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>(), true);
     }
 }

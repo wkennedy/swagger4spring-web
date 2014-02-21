@@ -1,6 +1,6 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.knappsack.swagger4springweb.util.ApiUtils;
+import com.knappsack.swagger4springweb.util.ModelUtils;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.model.Parameter;
 import scala.Option;
@@ -37,8 +37,8 @@ public class ApiPathParser {
     private Parameter createParameter(String parameter) {
         Option<String> descriptionOption = Option.apply(getDescription(parameter));
 
-        return new Parameter(parameter, descriptionOption, null, true, ApiUtils.isAllowMultiple(TYPE),
-                ApiUtils.getSwaggerTypeFor(TYPE), null, ApiValues.TYPE_PATH(), null);
+        return new Parameter(parameter, descriptionOption, null, true, ModelUtils.isAllowMultiple(TYPE),
+                ModelUtils.getSwaggerTypeFor(TYPE), null, ApiValues.TYPE_PATH(), null);
     }
 
     private String getDescription(String parameter) {

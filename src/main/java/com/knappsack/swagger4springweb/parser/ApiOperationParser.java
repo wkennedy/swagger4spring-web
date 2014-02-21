@@ -20,23 +20,26 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
 public class ApiOperationParser {
 
+    private final Map<String, Model> models;
     private String resourcePath;
     private List<String> ignorableAnnotations;
     private boolean ignoreUnusedPathVariables;
 
     public ApiOperationParser(String resourcePath, List<String> ignorableAnnotations,
-            boolean ignoreUnusedPathVariables) {
+            boolean ignoreUnusedPathVariables, Map<String, Model> models) {
         this.ignorableAnnotations = ignorableAnnotations;
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
         this.resourcePath = resourcePath;
+        this.models = models;
     }
 
-    public Operation getDocumentationOperation(Method method) {
+    public Operation parseDocumentationOperation(Method method) {
 
         DocumentationOperation documentationOperation = new DocumentationOperation();
         documentationOperation.setNickname(method.getName());// method name
@@ -106,8 +109,8 @@ public class ApiOperationParser {
             }
         }
 
-        ApiParameterParser apiParameterParser = new ApiParameterParser(ignorableAnnotations);
-        List<Parameter> documentationParameters = apiParameterParser.getApiParameters(method);
+        ApiParameterParser apiParameterParser = new ApiParameterParser(ignorableAnnotations, models);
+        List<Parameter> documentationParameters = apiParameterParser.parseApiParametersAndArgumentModels(method);
         documentationOperation.setParameters(documentationParameters);
         addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
 
