@@ -24,7 +24,15 @@ public class ApiDocumentationController {
 
     private String baseControllerPackage = "";
     private List<String> additionalControllerPackages = new ArrayList<String>();
+
+    /**
+     * @deprecated no need in model packages
+     */
     private String baseModelPackage = "";
+
+    /**
+     * @deprecated no need in model packages
+     */
     private List<String> additionalModelPackages = new ArrayList<String>();
     private String basePath = "";
     private String apiVersion = "v1";
@@ -49,7 +57,8 @@ public class ApiDocumentationController {
         String handlerMappingPath = (String) request.getAttribute(
                 HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         //trim the operation request mapping from the desired value
-        handlerMappingPath = handlerMappingPath.substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
+        handlerMappingPath = handlerMappingPath
+                .substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
 
         Map<String, ApiListing> docs = getDocs(request);
         if (docs == null) {
@@ -150,10 +159,10 @@ public class ApiDocumentationController {
     private Map<String, ApiListing> getDocs(HttpServletRequest request) {
         if (this.documentation == null) {
             String servletPath = null;
-            if(request != null) {
+            if (request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
             documentation = apiParser.createApiListings();
         }
@@ -163,11 +172,11 @@ public class ApiDocumentationController {
     private ResourceListing getResourceList(HttpServletRequest request) {
         if (this.resourceList == null) {
             String servletPath = null;
-            if(request != null) {
+            if (request != null) {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getModelPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
             resourceList = apiParser.getResourceListing(getDocs(request));
         }
@@ -181,28 +190,15 @@ public class ApiDocumentationController {
 
     private List<String> getControllerPackages() {
         List<String> controllerPackages = new ArrayList<String>();
-        if(baseControllerPackage != null && !baseControllerPackage.isEmpty()) {
+        if (baseControllerPackage != null && !baseControllerPackage.isEmpty()) {
             controllerPackages.add(baseControllerPackage);
         }
 
-        if(additionalControllerPackages != null && !additionalControllerPackages.isEmpty()) {
+        if (additionalControllerPackages != null && !additionalControllerPackages.isEmpty()) {
             controllerPackages.addAll(additionalControllerPackages);
         }
 
         return controllerPackages;
-    }
-
-    private List<String> getModelPackages() {
-        List<String> modelPackages = new ArrayList<String>();
-        if(baseModelPackage != null && !baseModelPackage.isEmpty()) {
-            modelPackages.add(baseModelPackage);
-        }
-
-        if(additionalModelPackages != null && !additionalModelPackages.isEmpty()) {
-            modelPackages.addAll(additionalModelPackages);
-        }
-
-        return modelPackages;
     }
 
     @SuppressWarnings("unused")
