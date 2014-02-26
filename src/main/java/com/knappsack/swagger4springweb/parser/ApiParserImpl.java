@@ -1,7 +1,8 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.knappsack.swagger4springweb.annotation.ApiExclude;
 import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
+import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
+import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
@@ -22,22 +23,27 @@ public class ApiParserImpl implements ApiParser {
 
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
-    private List<String> controllerPackages = new ArrayList<String>();
+    private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
+
+    private final List<String> controllerPackages;
+    private final List<String> ignorableAnnotations;
+    private final List<Filter> filters;
+
     private String basePath = "";
     private String apiVersion = "v1";
-    private List<String> ignorableAnnotations;
     private boolean ignoreUnusedPathVariables;
     private SwaggerConfig swaggerConfig;
 
-    private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
-
     public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, String basePath, String servletPath,
-            String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables) {
+            String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables,
+            List<Filter> filters) {
+
         this.controllerPackages = baseControllerPackage;
         this.ignorableAnnotations = ignorableAnnotations;
         this.ignoreUnusedPathVariables = ignoreUnusedPathVariables;
         this.basePath = basePath;
         this.apiVersion = apiVersion;
+
         swaggerConfig = new SwaggerConfig();
         if (apiInfo != null) {
             swaggerConfig.setApiInfo(apiInfo);
@@ -46,6 +52,12 @@ public class ApiParserImpl implements ApiParser {
         swaggerConfig.setApiVersion(apiVersion);
         swaggerConfig.setBasePath(basePath);
         swaggerConfig.setSwaggerVersion(swaggerVersion);
+
+        this.filters = new ArrayList<Filter>();
+        this.filters.add(new ApiExcludeFilter()); // @ApiExclude filter
+        if (filters != null) {
+            this.filters.addAll(filters);
+        }
     }
 
     public ResourceListing getResourceListing(Map<String, ApiListing> apiListingMap) {
@@ -79,10 +91,6 @@ public class ApiParserImpl implements ApiParser {
         //Loop over end points (controllers)
         for (Class<?> controllerClass : controllerClasses) {
             if (ApiDocumentationController.class.isAssignableFrom(controllerClass)) {
-                continue;
-            }
-
-            if (controllerClass.isAnnotationPresent(ApiExclude.class)) {
                 continue;
             }
 
@@ -150,56 +158,48 @@ public class ApiParserImpl implements ApiParser {
     }
 
     private ApiListing processMethods(Collection<Method> methods, ApiListing apiListing, String description) {
-        Map<String, ApiDescription> endPointMap = new HashMap<String, ApiDescription>();
 
-        populateApiDescriptionMapForApiListing(apiListing, endPointMap);
-
-        for (Method method : methods) {
-            if (method.isAnnotationPresent(ApiExclude.class)) {
-                continue;
-            }
-
-            String requestMappingValue = AnnotationUtils.getMethodRequestMappingValue(method);
-            ApiDescriptionParser documentationEndPointParser = new ApiDescriptionParser();
-            ApiDescription apiDescription = documentationEndPointParser
-                    .parseApiDescription(method, description, apiListing.resourcePath());
-            if (!endPointMap.containsKey(requestMappingValue)) {
-                endPointMap.put(requestMappingValue, apiDescription);
-            }
-        }
-
+        Map<String, ApiDescription> endpoints = new HashMap<String, ApiDescription>();
         Map<String, Model> models = new HashMap<String, Model>();
+        Map<String, List<Operation>> operations = new HashMap<String, List<Operation>>();
+        List<ApiDescription> descriptions = new ArrayList<ApiDescription>();
 
-        Map<String, List<Operation>> operationMap = new HashMap<String, List<Operation>>();
+        populateApiDescriptionMapForApiListing(apiListing, endpoints);
+
+        ApiModelParser apiModelParser = new ApiModelParser(models);
+
         for (Method method : methods) {
-            if (method.isAnnotationPresent(ApiExclude.class)) {
+            if (ignore(method)) {
                 continue;
             }
 
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
-            List<Operation> operations = operationMap.get(value);
-            if (operations == null) {
-                operations = new ArrayList<Operation>();
-                operationMap.put(value, operations);
+            ApiDescriptionParser documentationEndPointParser = new ApiDescriptionParser();
+            ApiDescription apiDescription = documentationEndPointParser
+                    .parseApiDescription(method, description, apiListing.resourcePath());
+            if (!endpoints.containsKey(value)) {
+                endpoints.put(value, apiDescription);
+            }
+
+            List<Operation> ops = operations.get(value);
+            if (ops == null) {
+                ops = new ArrayList<Operation>();
+                operations.put(value, ops);
             }
 
             ApiOperationParser apiOperationParser = new ApiOperationParser(apiListing.resourcePath(),
                     ignorableAnnotations, ignoreUnusedPathVariables, models);
             Operation operation = apiOperationParser.parseDocumentationOperation(method);
-            operations.add(operation);
-        }
+            ops.add(operation);
 
-        List<ApiDescription> newApiDescriptions = new ArrayList<ApiDescription>();
-        for (String key : endPointMap.keySet()) {
-            ApiDescription apiDescription = endPointMap.get(key);
-            ApiDescription newApiDescription = new ApiDescription(apiDescription.path(), apiDescription.description(),
-                    JavaToScalaUtil.toScalaList(operationMap.get(key)));
-            newApiDescriptions.add(newApiDescription);
-        }
-
-        ApiModelParser apiModelParser = new ApiModelParser(models);
-        for (Method method : methods) {
             apiModelParser.parseResponseBodyModels(method);
+        }
+
+        for (String key : endpoints.keySet()) {
+            ApiDescription apiDescription = endpoints.get(key);
+            ApiDescription newApiDescription = new ApiDescription(apiDescription.path(), apiDescription.description(),
+                    JavaToScalaUtil.toScalaList(operations.get(key)));
+            descriptions.add(newApiDescription);
         }
 
         Option<scala.collection.immutable.Map<String, Model>> modelOptions = Option
@@ -207,7 +207,7 @@ public class ApiParserImpl implements ApiParser {
 
         return new ApiListing(apiListing.apiVersion(), apiListing.swaggerVersion(), apiListing.basePath(),
                 apiListing.resourcePath(), apiListing.produces(), apiListing.consumes(), apiListing.protocols(),
-                apiListing.authorizations(), JavaToScalaUtil.toScalaList(newApiDescriptions), modelOptions,
+                apiListing.authorizations(), JavaToScalaUtil.toScalaList(descriptions), modelOptions,
                 apiListing.description(), apiListing.position());
     }
 
@@ -221,4 +221,14 @@ public class ApiParserImpl implements ApiParser {
             }
         }
     }
+
+    private boolean ignore(Method method) {
+        for (Filter filter : filters) {
+            if (filter.isApplicable(method) && filter.ignore(method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.knappsack.swagger4springweb.testController;
+package com.knappsack.swagger4springweb.testController.exclude;
 
 import com.knappsack.swagger4springweb.AbstractTest;
 import com.knappsack.swagger4springweb.annotation.ApiExclude;
