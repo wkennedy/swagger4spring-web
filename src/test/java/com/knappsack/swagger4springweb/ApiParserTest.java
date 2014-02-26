@@ -21,6 +21,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class ApiParserTest extends AbstractTest {
+
     @Test
     public void testParseControllerDocumentation() {
         Map<String, ApiListing> documentList = createApiParser().createApiListings();
@@ -31,7 +32,6 @@ public class ApiParserTest extends AbstractTest {
                 String documentationAsJSON = mapper.writeValueAsString(documentation);
                 System.out.println(documentationAsJSON);
                 ApiListing documentationDeserialized = JsonSerializer.asApiListing(documentationAsJSON);
-//                ApiListing documentationDeserialized = mapper.readValue(documentationAsJSON, ApiListing.class);
                 assertNotNull(documentationDeserialized);
                 assertTrue(documentationDeserialized.swaggerVersion().equals(SwaggerSpec.version()));
                 assertTrue(documentationDeserialized.apiVersion().equals("v1"));
@@ -44,15 +44,17 @@ public class ApiParserTest extends AbstractTest {
 
     @Test
     public void testOperationApiExclude() {
-        ApiParser apiParser = createApiParser();
+        ApiParser apiParser = createApiParser(Arrays.asList(BASE_CONTROLLER_PACKAGE + ".exclude"));
         Map<String, ApiListing> documents = apiParser.createApiListings();
+
+        assertEquals(2, documents.size()); // ExcludeClassTestController excluded completely
 
         // validate that we don't expose any excluded operations in the documents
         for (ApiListing documentation : documents.values()) {
             for (ApiDescription api : ScalaToJavaUtil.toJavaList(documentation.apis())) {
                 for (Operation op : ScalaToJavaUtil.toJavaList(api.operations())) {
-                    assertFalse("The operation " + op.nickname() + " should be excluded",
-                            "excluded".equals(op.summary()));
+                    assertTrue("The operation " + op.nickname() + " should be excluded",
+                            "exclude".equals(op.summary()));
                 }
             }
         }
@@ -78,6 +80,7 @@ public class ApiParserTest extends AbstractTest {
     }
 
     private ApiParser createApiParser(List<String> controllerPackages) {
-        return new ApiParserImpl(API_INFO, controllerPackages, "http://localhost:8080/api", "/api", "v1", new ArrayList<String>(), true);
+        return new ApiParserImpl(API_INFO, controllerPackages, "http://localhost:8080/api", "/api", "v1",
+                new ArrayList<String>(), true, null);
     }
 }

@@ -59,7 +59,7 @@ public class ApiOperationParser {
                         .setResponseContainer(((Class<?>) parameterizedType.getRawType()));
             } else {
                 // TODO what to do here?
-                // not supporting generic containing other generic
+                // not supporting generic with several values
             }
         }
 

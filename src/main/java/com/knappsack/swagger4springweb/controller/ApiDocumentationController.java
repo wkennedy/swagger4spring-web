@@ -1,5 +1,6 @@
 package com.knappsack.swagger4springweb.controller;
 
+import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.model.ApiInfo;
@@ -42,6 +43,7 @@ public class ApiDocumentationController {
     private boolean basePathFromReferer = false;
     private ResourceListing resourceList;
     private ApiInfo apiInfo;
+    private List<Filter> filters;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -67,6 +69,73 @@ public class ApiDocumentationController {
         }
 
         return docs.get(handlerMappingPath);
+    }
+
+    @SuppressWarnings("unused")
+    public String getBasePath() {
+        if (basePath == null || basePath.isEmpty()) {
+            //If no base path was specified, attempt to get the base path from the request URL
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes()).getRequest();
+            if (request != null) {
+                // requested from
+                String referer = request.getHeader("Referer");
+
+                if (basePathFromReferer && referer != null) {
+                    basePath = referer.substring(0, referer.lastIndexOf("/"));
+                } else {
+                    String mapping = request.getServletPath();
+                    basePath = request.getRequestURL().toString();
+                    basePath = basePath.substring(0, basePath.indexOf(mapping));
+                }
+            }
+        }
+        return basePath;
+    }
+
+    private Map<String, ApiListing> getDocs(HttpServletRequest request) {
+        if (documentation == null || (filters != null && !filters.isEmpty())) {
+            String servletPath = null;
+            if (request != null) {
+                servletPath = request.getServletPath();
+            }
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+            documentation = apiParser.createApiListings();
+        }
+        return documentation;
+    }
+
+    private ResourceListing getResourceList(HttpServletRequest request) {
+        if (resourceList == null || (filters != null && !filters.isEmpty())) {
+            String servletPath = null;
+            if (request != null) {
+                servletPath = request.getServletPath();
+                servletPath = servletPath.replace("/resourceList", "");
+            }
+            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+            resourceList = apiParser.getResourceListing(getDocs(request));
+        }
+        return resourceList;
+    }
+
+    private List<String> getControllerPackages() {
+        List<String> controllerPackages = new ArrayList<String>();
+        if (baseControllerPackage != null && !baseControllerPackage.isEmpty()) {
+            controllerPackages.add(baseControllerPackage);
+        }
+
+        if (additionalControllerPackages != null && !additionalControllerPackages.isEmpty()) {
+            controllerPackages.addAll(additionalControllerPackages);
+        }
+
+        return controllerPackages;
+    }
+
+    @SuppressWarnings("unused")
+    public void setResourceList(ResourceListing resourceList) {
+        this.resourceList = resourceList;
     }
 
     @SuppressWarnings("unused")
@@ -120,88 +189,6 @@ public class ApiDocumentationController {
     }
 
     @SuppressWarnings("unused")
-    public String getBasePath() {
-        if (basePath == null || basePath.isEmpty()) {
-            //If no base path was specified, attempt to get the base path from the request URL
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
-                    .getRequestAttributes()).getRequest();
-            if (request != null) {
-                // requested from
-                String referer = request.getHeader("Referer");
-
-                if (basePathFromReferer && referer != null) {
-                    basePath = referer.substring(0, referer.lastIndexOf("/"));
-                } else {
-                    String mapping = request.getServletPath();
-                    basePath = request.getRequestURL().toString();
-                    basePath = basePath.substring(0, basePath.indexOf(mapping));
-                }
-            }
-        }
-        return basePath;
-    }
-
-    @SuppressWarnings("unused")
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
-    }
-
-    @SuppressWarnings("unused")
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    @SuppressWarnings("unused")
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
-    }
-
-    private Map<String, ApiListing> getDocs(HttpServletRequest request) {
-        if (this.documentation == null) {
-            String servletPath = null;
-            if (request != null) {
-                servletPath = request.getServletPath();
-            }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
-            documentation = apiParser.createApiListings();
-        }
-        return documentation;
-    }
-
-    private ResourceListing getResourceList(HttpServletRequest request) {
-        if (this.resourceList == null) {
-            String servletPath = null;
-            if (request != null) {
-                servletPath = request.getServletPath();
-                servletPath = servletPath.replace("/resourceList", "");
-            }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables);
-            resourceList = apiParser.getResourceListing(getDocs(request));
-        }
-        return resourceList;
-    }
-
-    @SuppressWarnings("unused")
-    public void setResourceList(ResourceListing resourceList) {
-        this.resourceList = resourceList;
-    }
-
-    private List<String> getControllerPackages() {
-        List<String> controllerPackages = new ArrayList<String>();
-        if (baseControllerPackage != null && !baseControllerPackage.isEmpty()) {
-            controllerPackages.add(baseControllerPackage);
-        }
-
-        if (additionalControllerPackages != null && !additionalControllerPackages.isEmpty()) {
-            controllerPackages.addAll(additionalControllerPackages);
-        }
-
-        return controllerPackages;
-    }
-
-    @SuppressWarnings("unused")
     public List<String> getIgnorableAnnotations() {
         return ignorableAnnotations;
     }
@@ -234,5 +221,20 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setApiInfo(ApiInfo apiInfo) {
         this.apiInfo = apiInfo;
+    }
+
+    @SuppressWarnings("unused")
+    public void setFilters(final List<Filter> filters) {
+        this.filters = filters;
+    }
+
+    @SuppressWarnings("unused")
+    public void setBasePath(final String basePath) {
+        this.basePath = basePath;
+    }
+
+    @SuppressWarnings("unused")
+    public void setApiVersion(final String apiVersion) {
+        this.apiVersion = apiVersion;
     }
 }
