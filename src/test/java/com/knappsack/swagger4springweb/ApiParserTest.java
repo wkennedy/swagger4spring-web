@@ -8,6 +8,7 @@ import com.wordnik.swagger.core.SwaggerSpec;
 import com.wordnik.swagger.core.util.JsonSerializer;
 import com.wordnik.swagger.model.ApiDescription;
 import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.ApiListingReference;
 import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.ResourceListing;
 import org.junit.Test;
@@ -71,6 +72,16 @@ public class ApiParserTest extends AbstractTest {
 //        for (DocumentationEndPoint endPoint : resourceList.getApis()) {
 //            assertTrue("did u add a new controller without updating the endPoint paths ???", END_POINT_PATHS.contains(endPoint.getPath()));
 //        }
+    }
+
+    @Test
+    public void testNoClassRequestMapping() {
+        ApiParser apiParser = createApiParser();
+        Map<String, ApiListing> documentList = apiParser.createApiListings();
+        ResourceListing resourceList = apiParser.getResourceListing(documentList);
+        for (ApiListingReference api: ScalaToJavaUtil.toJavaList(resourceList.apis())) {
+            assertNotNull("could not get api listing for path: " + api.path(), documentList.get(api.path().substring(4))); // each api should be accessible using the ApiListingReference minus /doc
+        }
     }
 
     private ApiParser createApiParser() {
