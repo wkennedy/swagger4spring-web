@@ -54,9 +54,6 @@ public class ApiParserImpl implements ApiParser {
         for (String key : apiListingMap.keySet()) {
             ApiListing apiListing = apiListingMap.get(key);
             String docPath = "/doc"; //servletPath + "/doc"; //"/api/doc";
-            if (!key.startsWith("/")) {
-                docPath = docPath + "/";
-            }
             ApiListingReference apiListingReference = new ApiListingReference(docPath + key, apiListing.description(),
                     count);
 
@@ -126,6 +123,9 @@ public class ApiParserImpl implements ApiParser {
             } else {
                 resourcePath = controllerClass.getName();
             }
+        }
+        if (!resourcePath.startsWith("/")) {
+            resourcePath = "/" + resourcePath;
         }
 
         SpringApiReader reader = new SpringApiReader();
