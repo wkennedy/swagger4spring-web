@@ -132,17 +132,6 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
         param.dataType = processDataType(paramType, genericParamType)
         processParamAnnotations(param, annotations)
       }
-      else if(paramTypes.size > 0) {
-        //  it's a body param w/o annotations, which means POST.  Only take the first one!
-        val p = paramTypes.head
-
-        val param = new MutableParameter
-        param.dataType = p.getName
-        param.name = TYPE_BODY
-        param.paramType = TYPE_BODY
-
-        Some(param.asParameter)
-      }
       else None
     }).flatten.toList
 
