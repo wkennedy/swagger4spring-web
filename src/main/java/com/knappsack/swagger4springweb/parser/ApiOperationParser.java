@@ -1,14 +1,12 @@
 package com.knappsack.swagger4springweb.parser;
 
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import com.wordnik.swagger.annotations.*;
 import com.wordnik.swagger.converter.ModelConverters;
-import com.wordnik.swagger.model.Model;
-import com.wordnik.swagger.model.Operation;
-import com.wordnik.swagger.model.Parameter;
-import com.wordnik.swagger.model.ResponseMessage;
+import com.wordnik.swagger.model.*;
+import com.wordnik.swagger.model.Authorization;
+import com.wordnik.swagger.model.AuthorizationScope;
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -162,7 +160,7 @@ public class ApiOperationParser {
         private List<String> produces = new ArrayList<String>();
         private List<String> consumes = new ArrayList<String>();
         private List<String> protocols = new ArrayList<String>();
-        private List<String> authorizations = new ArrayList<String>();
+        private List<Authorization> authorizations = new ArrayList<Authorization>();
 
         Operation toScalaOperation() {
             return new Operation(httpMethod,
@@ -189,7 +187,7 @@ public class ApiOperationParser {
                 return;
             }
 
-            Option<Model> model = ModelConverters.read(responseClass);
+            Option<Model> model = ModelConverters.read(responseClass, ModelConverters.typeMap());
             if (model.nonEmpty()) {
                 this.responseClass = model.get().name();
             } else {
@@ -240,11 +238,19 @@ public class ApiOperationParser {
             this.parameters.add(parameter);
         }
 
-        public void addAuthorizations(final String authorizations) {
-            if (StringUtils.isEmpty(authorizations)) {
+        public void addAuthorizations(final com.wordnik.swagger.annotations.Authorization[] authorizations) {
+            if (ArrayUtils.isEmpty(authorizations)) {
                 return;
             }
-            this.authorizations.add(authorizations);
+
+            for (com.wordnik.swagger.annotations.Authorization authorization : authorizations) {
+                AuthorizationScope[] authorizationScopes = new AuthorizationScope[authorization.scopes().length];
+                for(int i = 0;i < authorization.scopes().length;i++) {
+                    com.wordnik.swagger.annotations.AuthorizationScope authScope = authorization.scopes()[i];
+                    authorizationScopes[i] = new AuthorizationScope(authScope.scope(), authScope.description());
+                }
+                this.authorizations.add(new Authorization(authorization.value(), authorizationScopes));
+            }
         }
 
         void addProtocols(final String protocols) {
@@ -276,7 +282,7 @@ public class ApiOperationParser {
         }
 
         public void setResponseContainer(final Class<?> type) {
-            Option<Model> model = ModelConverters.read(type);
+            Option<Model> model = ModelConverters.read(type, ModelConverters.typeMap());
             if (model.nonEmpty()) {
                 setResponseContainer(model.get().name());
             } else {

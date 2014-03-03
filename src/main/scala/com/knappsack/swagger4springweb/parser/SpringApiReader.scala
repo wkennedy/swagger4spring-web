@@ -8,6 +8,7 @@ import com.wordnik.swagger.annotations._
 import com.wordnik.swagger.core.ApiValues._
 
 import java.lang.annotation.Annotation
+import java.lang.reflect.Method
 
 class SpringApiReader() extends SpringMVCApiReader {
 
@@ -56,20 +57,25 @@ class SpringApiReader() extends SpringMVCApiReader {
     else None
   }
 
-//  def parseHttpMethod(method: Method, apiOperation: ApiOperation): String = {
-//    if (apiOperation.httpMethod() != null && apiOperation.httpMethod().trim().length() > 0)
-//      apiOperation.httpMethod().trim()
-//    else {
-//      val requestMapping = method.getAnnotation(classOf[org.springframework.web.bind.annotation.RequestMapping])
-//      val requestMethod = requestMapping.method()(0)
-//      if(requestMethod.equals(RequestMethod.GET)) ApiMethodType.GET
-//      if(requestMethod.equals(RequestMethod.POST)) ApiMethodType.POST
-//      if(requestMethod.equals(RequestMethod.PUT)) ApiMethodType.PUT
-//      if(requestMethod.equals(RequestMethod.DELETE)) ApiMethodType.DELETE
-//      if(requestMethod.equals(RequestMethod.HEAD)) ApiMethodType.HEAD
-//
-//      null
-//    }
-//  }
+  def findSubresourceType(method: Method): Class[_] = {
+    method.getReturnType
+  }
+
+  //  def parseHttpMethod(method: Method, apiOperation: ApiOperation): String = {
+  //    if (apiOperation.httpMethod() != null && apiOperation.httpMethod().trim().length() > 0)
+  //      apiOperation.httpMethod().trim()
+  //    else {
+  //      val requestMapping = method.getAnnotation(classOf[org.springframework.web.bind.annotation.RequestMapping])
+  //      val requestMethod = requestMapping.method()(0)
+  //      if(requestMethod.equals(RequestMethod.GET)) ApiMethodType.GET
+  //      if(requestMethod.equals(RequestMethod.POST)) ApiMethodType.POST
+  //      if(requestMethod.equals(RequestMethod.PUT)) ApiMethodType.PUT
+  //      if(requestMethod.equals(RequestMethod.DELETE)) ApiMethodType.DELETE
+  //      if(requestMethod.equals(RequestMethod.HEAD)) ApiMethodType.HEAD
+  //
+  //      null
+  //    }
+  //  }
+  // Finds the type of the subresource this method produces, in case it's a subresource locator
 
 }
