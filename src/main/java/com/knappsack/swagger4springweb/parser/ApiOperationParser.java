@@ -7,6 +7,7 @@ import com.wordnik.swagger.model.*;
 import com.wordnik.swagger.model.Authorization;
 import com.wordnik.swagger.model.AuthorizationScope;
 import org.apache.commons.lang.ArrayUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -75,7 +76,11 @@ public class ApiOperationParser {
         for (RequestMethod requestMethod : methodRequestMapping.method()) {
             httpMethod += requestMethod.name() + " ";
         }
-        documentationOperation.setHttpMethod(httpMethod.trim());
+        httpMethod = httpMethod.trim();
+        if(StringUtils.isEmpty(httpMethod) || " ".equals(httpMethod)) {
+            httpMethod = HttpMethod.GET.toString();
+        }
+        documentationOperation.setHttpMethod(httpMethod);
         documentationOperation.addConsumes(Arrays.asList(methodRequestMapping.consumes()));
         documentationOperation.addProduces(Arrays.asList(methodRequestMapping.produces()));
 
