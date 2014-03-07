@@ -12,6 +12,7 @@ import com.wordnik.swagger.model.*;
 import org.reflections.Reflections;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import scala.Option;
 
 import java.lang.reflect.Method;
@@ -82,6 +83,7 @@ public class ApiParserImpl implements ApiParser {
         for (String controllerPackage : controllerPackages) {
             Reflections reflections = new Reflections(controllerPackage);
             controllerClasses.addAll(reflections.getTypesAnnotatedWith(Controller.class));
+            controllerClasses.addAll(reflections.getTypesAnnotatedWith(RestController.class));
         }
 
         return processControllers(controllerClasses);
@@ -104,7 +106,7 @@ public class ApiParserImpl implements ApiParser {
             }
 
             if (apiListing.apis() == null) {
-                apiListing = processMethods(requestMappingMethods, apiListing, description);
+                apiListing = processMethods(requestMappingMethods, controllerClass, apiListing, description);
             }
 
             // controllers without any operations are excluded from the apiListingMap list
@@ -136,8 +138,12 @@ public class ApiParserImpl implements ApiParser {
             resourcePath = "/" + resourcePath;
         }
 
+        String docRoot = resourcePath;
+        if(docRoot.contains(controllerClass.getName())) {
+            docRoot = docRoot.replace(controllerClass.getName(), "");
+        }
         SpringApiReader reader = new SpringApiReader();
-        Option<ApiListing> apiListingOption = reader.read(resourcePath, controllerClass, swaggerConfig);
+        Option<ApiListing> apiListingOption = reader.read(docRoot, controllerClass, swaggerConfig);
         ApiListing apiListing = null;
         if (apiListingOption.nonEmpty()) {
             apiListing = apiListingOption.get();
@@ -157,7 +163,7 @@ public class ApiParserImpl implements ApiParser {
                 null, 0);
     }
 
-    private ApiListing processMethods(Collection<Method> methods, ApiListing apiListing, String description) {
+    private ApiListing processMethods(Collection<Method> methods, Class<?> controllerClass, ApiListing apiListing, String description) {
 
         Map<String, ApiDescription> endpoints = new HashMap<String, ApiDescription>();
         Map<String, Model> models = new HashMap<String, Model>();
@@ -168,6 +174,13 @@ public class ApiParserImpl implements ApiParser {
 
         ApiModelParser apiModelParser = new ApiModelParser(models);
 
+        //This is for the case where there is no request mapping at the class level. When this occurs, the resourcePath
+        //is the class name, which we don't want to be appended to the path of the operation.  Therefore, we replace
+        //the class name.
+        String resourcePath = apiListing.resourcePath();
+        if(resourcePath.contains(controllerClass.getName())) {
+            resourcePath = resourcePath.replace("/" + controllerClass.getName(), "");
+        }
         for (Method method : methods) {
             if (ignore(method)) {
                 continue;
@@ -176,7 +189,7 @@ public class ApiParserImpl implements ApiParser {
             String value = AnnotationUtils.getMethodRequestMappingValue(method);
             ApiDescriptionParser documentationEndPointParser = new ApiDescriptionParser();
             ApiDescription apiDescription = documentationEndPointParser
-                    .parseApiDescription(method, description, apiListing.resourcePath());
+                    .parseApiDescription(method, description, resourcePath);
             if (!endpoints.containsKey(value)) {
                 endpoints.put(value, apiDescription);
             }
@@ -187,7 +200,7 @@ public class ApiParserImpl implements ApiParser {
                 operations.put(value, ops);
             }
 
-            ApiOperationParser apiOperationParser = new ApiOperationParser(apiListing.resourcePath(),
+            ApiOperationParser apiOperationParser = new ApiOperationParser(resourcePath,
                     ignorableAnnotations, ignoreUnusedPathVariables, models);
             Operation operation = apiOperationParser.parseDocumentationOperation(method);
             ops.add(operation);
