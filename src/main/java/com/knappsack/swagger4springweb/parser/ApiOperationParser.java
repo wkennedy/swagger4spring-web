@@ -81,8 +81,8 @@ public class ApiOperationParser {
             httpMethod = HttpMethod.GET.toString();
         }
         documentationOperation.setHttpMethod(httpMethod);
-        documentationOperation.addConsumes(Arrays.asList(methodRequestMapping.consumes()));
-        documentationOperation.addProduces(Arrays.asList(methodRequestMapping.produces()));
+        documentationOperation.addConsumes(getConsumes(method, methodRequestMapping));
+        documentationOperation.addProduces(getProduces(method, methodRequestMapping));
 
         // get ApiOperation information
         ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
@@ -149,6 +149,30 @@ public class ApiOperationParser {
             }
         }
         return false;
+    }
+
+    private List<String> getConsumes(Method method, RequestMapping methodRequestMapping) {
+        List<String> consumes = Arrays.asList(methodRequestMapping.consumes());
+        if(consumes.isEmpty()) {
+            RequestMapping controllerRequestMapping = method.getDeclaringClass().getAnnotation(RequestMapping.class);
+            if(controllerRequestMapping != null) {
+                consumes = Arrays.asList(controllerRequestMapping.consumes());
+            }
+        }
+
+        return consumes;
+    }
+
+    private List<String> getProduces(Method method, RequestMapping methodRequestMapping) {
+        List<String> produces = Arrays.asList(methodRequestMapping.produces());
+        if(produces.isEmpty()) {
+            RequestMapping controllerRequestMapping = method.getDeclaringClass().getAnnotation(RequestMapping.class);
+            if(controllerRequestMapping != null) {
+                produces = Arrays.asList(controllerRequestMapping.produces());
+            }
+        }
+
+        return produces;
     }
 
     //This class is used as a temporary solution to create a Swagger Operation object, since the Operation is immutable
