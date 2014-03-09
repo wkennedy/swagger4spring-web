@@ -10,17 +10,22 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.model.*;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import scala.Option;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class ApiParserImpl implements ApiParser {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiParserImpl.class);
 
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
@@ -83,7 +88,12 @@ public class ApiParserImpl implements ApiParser {
         for (String controllerPackage : controllerPackages) {
             Reflections reflections = new Reflections(controllerPackage);
             controllerClasses.addAll(reflections.getTypesAnnotatedWith(Controller.class));
-            controllerClasses.addAll(reflections.getTypesAnnotatedWith(RestController.class));
+            try {
+                controllerClasses.addAll(reflections.getTypesAnnotatedWith(RestController.class));
+            } catch (NoClassDefFoundError  e) {
+                //Check for NoClassDefFoundError in the case that this is being used in a Spring 3 project where the RestController does not exist.
+                LOGGER.debug("No RestController found.  RestController is found in Spring 4.  This is potentially an earlier version of Spring", e);
+            }
         }
 
         return processControllers(controllerClasses);
