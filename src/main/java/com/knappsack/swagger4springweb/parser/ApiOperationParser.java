@@ -18,11 +18,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
 public class ApiOperationParser {
 
@@ -78,8 +79,8 @@ public class ApiOperationParser {
             httpMethod += requestMethod.name() + " ";
         }
         documentationOperation.setHttpMethod(httpMethod.trim());
-        documentationOperation.addConsumes(Arrays.asList(methodRequestMapping.consumes()));
-        documentationOperation.addProduces(Arrays.asList(methodRequestMapping.produces()));
+        documentationOperation.addConsumes(asList(methodRequestMapping.consumes()));
+        documentationOperation.addProduces(asList(methodRequestMapping.produces()));
 
         // get ApiOperation information
         ApiOperation apiOperation = method.getAnnotation(ApiOperation.class);
@@ -165,6 +166,8 @@ public class ApiOperationParser {
         private List<String> authorizations = new ArrayList<String>();
 
         Operation toScalaOperation() {
+            final List<String> consumes = getConsumes();
+
             return new Operation(httpMethod,
                     summary,
                     notes,
@@ -288,5 +291,9 @@ public class ApiOperationParser {
             return responseClass;
         }
 
+        List<String> getConsumes() {
+            return !consumes.isEmpty() || "GET".equalsIgnoreCase(httpMethod)
+                    ? consumes : asList(APPLICATION_FORM_URLENCODED);
+        }
     }
 }

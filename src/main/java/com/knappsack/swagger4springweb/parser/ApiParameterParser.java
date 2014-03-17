@@ -102,7 +102,7 @@ public class ApiParameterParser {
         if (ModelUtils.isSet(modelAttribute.value())) {
             documentationParameter.setName(modelAttribute.value());
         }
-        documentationParameter.setParamType(ApiValues.TYPE_FORM());
+        documentationParameter.setParamType(ApiValues.TYPE_BODY());
     }
 
     private void addRequestBody(DocumentationParameter documentationParameter) {
