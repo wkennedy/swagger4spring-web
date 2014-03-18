@@ -67,17 +67,32 @@ public class ApiParserImpl implements ApiParser {
     }
 
     public ResourceListing getResourceListing(Map<String, ApiListing> apiListingMap) {
-        int count = 0;
         List<ApiListingReference> apiListingReferences = new ArrayList<ApiListingReference>();
         for (String key : apiListingMap.keySet()) {
             ApiListing apiListing = apiListingMap.get(key);
             String docPath = "/doc"; //servletPath + "/doc"; //"/api/doc";
             ApiListingReference apiListingReference = new ApiListingReference(docPath + key, apiListing.description(),
-                    count);
+                    apiListing.position());
 
             apiListingReferences.add(apiListingReference);
-            count++;
         }
+
+        Collections.sort(apiListingReferences, new Comparator<ApiListingReference>() {
+            @Override
+            public int compare(ApiListingReference o1, ApiListingReference o2) {
+                if (o1.position() == o2.position())
+                    return 0;
+                else if(o1.position() == 0)
+                    return 1;
+                else if(o2.position() == 0)
+                    return -1;
+                else if (o1.position() < o2.position())
+                    return -1;
+                else if (o1.position() > o2.position())
+                    return 1;
+                return 0;
+            }
+        });
 
         return new ResourceListing(apiVersion, swaggerVersion, JavaToScalaUtil.toScalaList(apiListingReferences), null,
                 swaggerConfig.info());
