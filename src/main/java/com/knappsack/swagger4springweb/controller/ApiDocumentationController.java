@@ -73,24 +73,26 @@ public class ApiDocumentationController {
 
     @SuppressWarnings("unused")
     public String getBasePath() {
-        if (basePath == null || basePath.isEmpty()) {
-            //If no base path was specified, attempt to get the base path from the request URL
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
-                    .getRequestAttributes()).getRequest();
-            if (request != null) {
-                // requested from
-                String referer = request.getHeader("Referer");
+        if (basePath != null && !basePath.isEmpty()) {
+            return basePath;
+        }
 
-                if (basePathFromReferer && referer != null) {
-                    basePath = referer.substring(0, referer.lastIndexOf("/"));
-                } else {
-                    String mapping = request.getServletPath();
-                    basePath = request.getRequestURL().toString();
-                    basePath = basePath.substring(0, basePath.indexOf(mapping));
-                }
+        //If no base path was specified, attempt to get the base path from the request URL
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+                .getRequestAttributes()).getRequest();
+        if (request != null) {
+            // requested from
+            String referer = request.getHeader("Referer");
+
+            if (basePathFromReferer && referer != null) {
+                return referer.substring(0, referer.lastIndexOf("/"));
+            } else {
+                String mapping = request.getServletPath();
+                String requestURL = request.getRequestURL().toString();
+                return requestURL.substring(0, requestURL.indexOf(mapping));
             }
         }
-        return basePath;
+        throw new RuntimeException("Unknown basePath");
     }
 
     private Map<String, ApiListing> getDocs(HttpServletRequest request) {
