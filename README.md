@@ -12,7 +12,7 @@ To include swagger4spring-web in your project, you need to include the jar in yo
         <dependency>
             <groupId>com.knappsack</groupId>
             <artifactId>swagger4spring-web</artifactId>
-            <version>0.3.2</version>
+            <version>0.3.3</version>
         </dependency>
 
 
@@ -75,6 +75,7 @@ To see a working example, please take a look at [swagger4spring-web-example](htt
 The following Spring-Web annotations are supported:
 
 * @Controller
+* @RestController
 * @RequestMapping
 * @ResponseBody
 * @RequestBody
