@@ -4,6 +4,7 @@ import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
 import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.util.ApiListingUtil;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import scala.Option;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -130,8 +130,14 @@ public class ApiParserImpl implements ApiParser {
                 description = controllerApi.description();
             }
 
-            if (apiListing.apis() == null) {
+            if (apiListing.apis().size() == 0) {
                 apiListing = processMethods(requestMappingMethods, controllerClass, apiListing, description);
+            }
+
+            //Allow for multiple controllers having the same resource path.
+            ApiListing existingApiListing = apiListingMap.get(apiListing.resourcePath());
+            if (existingApiListing != null) {
+                apiListing = ApiListingUtil.mergeApiListing(existingApiListing, apiListing);
             }
 
             // controllers without any operations are excluded from the apiListingMap list
@@ -174,18 +180,11 @@ public class ApiParserImpl implements ApiParser {
             apiListing = apiListingOption.get();
         }
 
-        //Allow for multiple controllers having the same resource path.
-        ApiListing existingApiListing = apiListingMap.get(resourcePath);
-        if (existingApiListing != null) {
-            return existingApiListing;
-        }
-
         if (apiListing != null) {
             return apiListing;
         }
 
-        return new ApiListing(apiVersion, swaggerVersion, basePath, resourcePath, null, null, null, null, null, null,
-                null, 0);
+        return ApiListingUtil.baseApiListing(apiVersion, swaggerVersion, basePath, resourcePath);
     }
 
     private ApiListing processMethods(Collection<Method> methods, Class<?> controllerClass, ApiListing apiListing, String description) {
@@ -268,5 +267,4 @@ public class ApiParserImpl implements ApiParser {
         }
         return false;
     }
-
 }
