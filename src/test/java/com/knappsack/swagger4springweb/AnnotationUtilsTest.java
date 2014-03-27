@@ -6,11 +6,13 @@ import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.junit.Test;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -82,6 +84,12 @@ public class AnnotationUtilsTest extends AbstractTest {
         Method method = controllerClass.getMethod("getTestPojosNoSwaggerAnnotations", HttpServletRequest.class, String.class);
         boolean hasApiParam = AnnotationUtils.hasApiParam(method);
         assertFalse(hasApiParam);
+    }
+
+    @Test
+    public void testGetMethodsWithAnnotation() {
+        Set<Method> methods = AnnotationUtils.getAnnotatedMethods(MockController.class, RequestMapping.class);
+        assertTrue(methods.size() == 4);
     }
 
 }

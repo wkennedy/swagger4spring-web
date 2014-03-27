@@ -11,7 +11,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AnnotationUtils {
 
@@ -63,7 +65,7 @@ public class AnnotationUtils {
      *         objects based on the values of the parameter annotations
      */
     public static List<AnnotatedParameter> getAnnotatedParameters(Method method) {
-        List<AnnotatedParameter> annotatedParameters = new ArrayList<AnnotatedParameter>();
+        List<AnnotatedParameter> annotatedParameters = new ArrayList<>();
         Paranamer paranamer = new BytecodeReadingParanamer();
         String[] parameterNames = paranamer.lookupParameterNames(method);
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
@@ -83,5 +85,22 @@ public class AnnotationUtils {
             i++;
         }
         return annotatedParameters;
+    }
+
+    /**
+     *
+     * @param clazz Class<?> - scan this class for methods with the specified annotation
+     * @param annotationClass Class<? extends Annotation> - return all methods with this annotation
+     * @return Set<Method> - all methods of this class with the specified annotation
+     */
+    public static Set<Method> getAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotationClass) {
+        Method[] methods = clazz.getMethods();
+        Set<Method> annotatedMethods = new HashSet<>(methods.length);
+        for (Method method : methods) {
+            if( method.isAnnotationPresent(annotationClass)){
+                annotatedMethods.add(method);
+            }
+        }
+        return annotatedMethods;
     }
 }

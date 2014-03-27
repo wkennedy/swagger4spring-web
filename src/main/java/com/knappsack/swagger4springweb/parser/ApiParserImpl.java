@@ -10,6 +10,7 @@ import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.model.*;
+import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,8 +122,7 @@ public class ApiParserImpl implements ApiParser {
                 continue;
             }
 
-            Set<Method> requestMappingMethods = Reflections
-                    .getAllMethods(controllerClass, withAnnotation(RequestMapping.class));
+            Set<Method> requestMappingMethods = AnnotationUtils.getAnnotatedMethods(controllerClass, RequestMapping.class);
             ApiListing apiListing = processControllerApi(controllerClass);
             String description = "";
             Api controllerApi = controllerClass.getAnnotation(Api.class);
