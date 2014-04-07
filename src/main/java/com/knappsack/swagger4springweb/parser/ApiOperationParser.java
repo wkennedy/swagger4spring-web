@@ -16,6 +16,7 @@ import scala.Option;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,13 +50,8 @@ public class ApiOperationParser {
 
             if (parameterizedType.getActualTypeArguments().length == 1) {
                 final Type type = parameterizedType.getActualTypeArguments()[0];
-                if (type instanceof ParameterizedType) {
-                    documentationOperation.setResponseClass((Class<?>) ((ParameterizedType) type).getRawType());
-                } else {
-                    documentationOperation.setResponseClass((Class<?>) type);
-                }
-                documentationOperation
-                        .setResponseContainer(((Class<?>) parameterizedType.getRawType()));
+                documentationOperation.setResponseClass(getResponseClass(type));
+                documentationOperation.setResponseContainer(((Class<?>) parameterizedType.getRawType()));
             } else {
                 // TODO what to do here?
                 // not supporting generic with several values
@@ -173,6 +169,26 @@ public class ApiOperationParser {
         }
 
         return produces;
+    }
+
+    private Class<?> getResponseClass(Type type) {
+        Class<?> responseClass = null;
+        if (type instanceof ParameterizedType) {
+            responseClass = (Class<?>) ((ParameterizedType) type).getRawType();
+        } else if(type instanceof WildcardType) {
+            Type[] lowerBounds = ((WildcardType) type).getLowerBounds();
+            Type[] upperBounds = ((WildcardType) type).getUpperBounds();
+            if(lowerBounds.length > 0) {
+                responseClass = (Class<?>) lowerBounds[0];
+            } else if(upperBounds.length > 0) {
+                responseClass = (Class<?>) upperBounds[0];
+            }
+
+        } else {
+            responseClass = (Class<?>) type;
+        }
+
+        return responseClass;
     }
 
     //This class is used as a temporary solution to create a Swagger Operation object, since the Operation is immutable
