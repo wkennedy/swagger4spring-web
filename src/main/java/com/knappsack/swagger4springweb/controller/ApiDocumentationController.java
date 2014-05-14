@@ -1,5 +1,7 @@
 package com.knappsack.swagger4springweb.controller;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
@@ -37,13 +39,14 @@ public class ApiDocumentationController {
     private List<String> additionalModelPackages = new ArrayList<String>();
     private String basePath = "";
     private String apiVersion = "v1";
-    private Map<String, ApiListing> documentation;
     private List<String> ignorableAnnotations = new ArrayList<String>();
     private boolean ignoreUnusedPathVariables = true;
     private boolean basePathFromReferer = false;
-    private ResourceListing resourceList;
     private ApiInfo apiInfo;
     private List<Filter> filters;
+
+    private Map<List<Filter>, Map<String, ApiListing>> documentationCache = Maps.newHashMap();
+    private Map<List<Filter>, ResourceListing> resourceListingCache = Maps.newHashMap();
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -84,7 +87,7 @@ public class ApiDocumentationController {
             // requested from
             String referer = request.getHeader("Referer");
 
-            if (basePathFromReferer && referer != null) {
+            if (basePathFromReferer && referer != null && !referer.isEmpty()) {
                 return referer.substring(0, referer.lastIndexOf("/"));
             } else {
                 String mapping = request.getServletPath();
@@ -92,34 +95,44 @@ public class ApiDocumentationController {
                 return requestURL.substring(0, requestURL.indexOf(mapping));
             }
         }
-        throw new RuntimeException("Unknown basePath");
+        throw new RuntimeException("Base path can't be constructed");
     }
 
     private Map<String, ApiListing> getDocs(HttpServletRequest request) {
-        if (documentation == null || (filters != null && !filters.isEmpty())) {
-            String servletPath = null;
-            if (request != null) {
-                servletPath = request.getServletPath();
-            }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
-            documentation = apiParser.createApiListings();
+        Map<String, ApiListing> documentation = documentationCache.get(filters);
+        if (documentation != null) {
+            return documentation;
         }
+
+        String servletPath = null;
+        if (request != null) {
+            servletPath = request.getServletPath();
+        }
+        ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+        documentation = apiParser.createApiListings();
+        documentationCache.put(filters != null ? Lists.newArrayList(filters) : null, documentation);
+
         return documentation;
     }
 
     private ResourceListing getResourceList(HttpServletRequest request) {
-        if (resourceList == null || (filters != null && !filters.isEmpty())) {
-            String servletPath = null;
-            if (request != null) {
-                servletPath = request.getServletPath();
-                servletPath = servletPath.replace("/resourceList", "");
-            }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                    servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
-            resourceList = apiParser.getResourceListing(getDocs(request));
+        ResourceListing resourceListing = resourceListingCache.get(filters);
+        if (resourceListing != null) {
+            return resourceListing;
         }
-        return resourceList;
+
+        String servletPath = null;
+        if (request != null) {
+            servletPath = request.getServletPath();
+            servletPath = servletPath.replace("/resourceList", "");
+        }
+        ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+        resourceListing = apiParser.getResourceListing(getDocs(request));
+        resourceListingCache.put(filters != null ? Lists.newArrayList(filters) : null, resourceListing);
+
+        return resourceListing;
     }
 
     private List<String> getControllerPackages() {
@@ -133,11 +146,6 @@ public class ApiDocumentationController {
         }
 
         return controllerPackages;
-    }
-
-    @SuppressWarnings("unused")
-    public void setResourceList(ResourceListing resourceList) {
-        this.resourceList = resourceList;
     }
 
     @SuppressWarnings("unused")
@@ -178,16 +186,6 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setAdditionalModelPackages(List<String> additionalModelPackages) {
         this.additionalModelPackages = additionalModelPackages;
-    }
-
-    @SuppressWarnings("unused")
-    public Map<String, ApiListing> getDocumentation() {
-        return documentation;
-    }
-
-    @SuppressWarnings("unused")
-    public void setDocumentation(Map<String, ApiListing> documentation) {
-        this.documentation = documentation;
     }
 
     @SuppressWarnings("unused")
