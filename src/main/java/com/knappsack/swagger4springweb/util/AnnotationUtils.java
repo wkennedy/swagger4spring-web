@@ -4,13 +4,19 @@ import com.google.common.collect.Lists;
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
+import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AnnotationUtils {
@@ -69,19 +75,104 @@ public class AnnotationUtils {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         Class[] parameterTypes = method.getParameterTypes();
         Type[] genericParameterTypes = method.getGenericParameterTypes();
+        final ApiOperation apiOperation = findApiOperation(Lists.newArrayList(method.getDeclaredAnnotations()));
 
         int i = 0;
         for (Annotation[] annotations : parameterAnnotations) {
             if (annotations.length > 0) {
-                AnnotatedParameter annotatedParameter = new AnnotatedParameter();
-                annotatedParameter.setParameterClass(parameterTypes[i]);
-                annotatedParameter.setParameterName(parameterNames[i]);
-                annotatedParameter.setParameterType(genericParameterTypes[i]);
-                annotatedParameter.addAnnotations(Lists.newArrayList(annotations));
-                annotatedParameters.add(annotatedParameter);
+                if (containsModelAttribute(annotations)
+                        && !apiOperation.consumes().equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                    addModelAttributeParameters(parameterTypes[i], annotatedParameters);
+                } else {
+                    AnnotatedParameter annotatedParameter = createParameter(parameterNames[i], parameterTypes[i],
+                            genericParameterTypes[i], Lists.newArrayList(annotations));
+
+                    annotatedParameters.add(annotatedParameter);
+                }
             }
             i++;
         }
         return annotatedParameters;
+    }
+
+    private static void addModelAttributeParameters(final Class type,
+                                                    final List<AnnotatedParameter> annotatedParameters) {
+        List<Field> fields = new ArrayList<Field>();
+        fields = getAllFields(fields, type);
+
+        for (final Field field : fields) {
+            List<Annotation> annotations = new ArrayList<Annotation>(Arrays.asList(field.getDeclaredAnnotations()));
+            annotations.add(createRequestParamAnnotation());
+            annotatedParameters.add(createParameter(field.getName(), field.getType(),
+                    field.getGenericType(), annotations));
+        }
+    }
+
+    private static Annotation createRequestParamAnnotation() {
+        return new RequestParam() {
+            @Override
+            public String value() {
+                return "";
+            }
+
+            @Override
+            public boolean required() {
+                return false;
+            }
+
+            @Override
+            public String defaultValue() {
+                return "";
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return RequestParam.class;
+            }
+        };
+    }
+
+    private static List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        for (Field field : type.getDeclaredFields()) {
+            fields.add(field);
+        }
+
+        if (type.getSuperclass() != null && type.getSuperclass() != Object.class) {
+            fields = getAllFields(fields, type.getSuperclass());
+        }
+
+        return fields;
+    }
+
+
+    private static boolean containsModelAttribute(final Annotation[] annotations) {
+         for (final Annotation item : annotations) {
+               if (item instanceof ModelAttribute) {
+                 return true;
+               }
+         }
+        return false;
+    }
+
+    private static ApiOperation findApiOperation(final List<Annotation> annotations) {
+        for (final Annotation item : annotations) {
+            if (item instanceof ApiOperation) {
+                return (ApiOperation) item;
+            }
+        }
+        return null;
+    }
+
+
+
+    private static AnnotatedParameter createParameter(final String paramName, final Class paramType,
+                                                      final Type genericParameterType,
+                                                      final List<Annotation> annotations) {
+        AnnotatedParameter annotatedParameter = new AnnotatedParameter();
+        annotatedParameter.setParameterClass(paramType);
+        annotatedParameter.setParameterName(paramName);
+        annotatedParameter.setParameterType(genericParameterType);
+        annotatedParameter.addAnnotations(annotations);
+        return annotatedParameter;
     }
 }

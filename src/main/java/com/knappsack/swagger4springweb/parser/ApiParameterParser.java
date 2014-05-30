@@ -4,6 +4,7 @@ import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
 import com.knappsack.swagger4springweb.util.ModelUtils;
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.model.AllowableListValues;
@@ -60,6 +61,10 @@ public class ApiParameterParser {
             for (Annotation annotation : annotatedParameter.getAnnotations()) {
                 if (annotation instanceof ApiParam) {
                     addApiParams((ApiParam) annotation, documentationParameter);
+                }
+
+                if (annotation instanceof ApiModelProperty) {
+                    addApiModelProperty((ApiModelProperty) annotation,documentationParameter);
                 }
             }
 
@@ -171,6 +176,34 @@ public class ApiParameterParser {
         if (!documentationParameter.isRequired()) {
             documentationParameter.setRequired(apiParam.required());
         }
+    }
+
+    private void addApiModelProperty(final ApiModelProperty apiModelProperty,
+                                     final DocumentationParameter documentationParameter) {
+        if (ModelUtils.isSet(apiModelProperty.allowableValues())) {
+            List<String> allowableValues = Arrays.asList(apiModelProperty.allowableValues().split("\\s*,\\s*"));
+            documentationParameter
+                    .setAllowableValues(new AllowableListValues(JavaToScalaUtil.toScalaList(allowableValues), "LIST"));
+        }
+
+        if (ModelUtils.isSet(apiModelProperty.notes())) {
+            documentationParameter.setDescription(apiModelProperty.notes());
+        }
+
+        if (ModelUtils.isSet(apiModelProperty.dataType())) {
+            documentationParameter.setDataType(apiModelProperty.dataType());
+        }
+
+        documentationParameter.setDescription(apiModelProperty.value());
+
+        documentationParameter.setParamAccess(apiModelProperty.access());
+
+        if (!documentationParameter.isRequired()) {
+            documentationParameter.setRequired(apiModelProperty.required());
+        }
+
+
+
     }
 
     private boolean hasIgnorableAnnotations(List<Annotation> annotations) {
