@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface ApiParser {
     /**
-     * @param documentationMap Map<String, ApiListing> - A map of different API declarations for which you want to
+     * @param documentationMap Map - A map of different API declarations for which you want to
      *                         create a resource listing.
      * @return ResourceListing - This returns a resource listing which is an inventory of all APIs
      */

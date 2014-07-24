@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,7 +60,7 @@ public class AnnotationUtils {
     /**
      * @param method
      *            Method
-     * @return List<AnnotatedParameter> - if the method contains parameters
+     * @return List - if the method contains parameters
      *         annotated with ApiParam, RequestMapping, PathVariable, or
      *         RequestBody, this method will return a list of AnnotatedParameter
      *         objects based on the values of the parameter annotations
@@ -67,7 +68,20 @@ public class AnnotationUtils {
     public static List<AnnotatedParameter> getAnnotatedParameters(Method method) {
         List<AnnotatedParameter> annotatedParameters = new ArrayList<>();
         Paranamer paranamer = new BytecodeReadingParanamer();
-        String[] parameterNames = paranamer.lookupParameterNames(method);
+        String[] parameterNames;
+        //Attempt to use Paranamer to look up the parameter names for those not using Java 8+.
+        //This will fail if trying to evaluate a class using Lambdas, in which case fall back and look up using
+        //standard java reflections.  This will provide the paramter name if using the -parameters javac argument.
+        try {
+            parameterNames = paranamer.lookupParameterNames(method);
+        } catch(Exception e) {
+            Parameter[] parameters = method.getParameters();
+            parameterNames = new String[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter parameter = parameters[i];
+                parameterNames[i] = parameter.getName();
+            }
+        }
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         Class[] parameterTypes = method.getParameterTypes();
         Type[] genericParameterTypes = method.getGenericParameterTypes();
@@ -89,9 +103,9 @@ public class AnnotationUtils {
 
     /**
      *
-     * @param clazz Class<?> - scan this class for methods with the specified annotation
-     * @param annotationClass Class<? extends Annotation> - return all methods with this annotation
-     * @return Set<Method> - all methods of this class with the specified annotation
+     * @param clazz Class - scan this class for methods with the specified annotation
+     * @param annotationClass Class - return all methods with this annotation
+     * @return Set - all methods of this class with the specified annotation
      */
     public static Set<Method> getAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotationClass) {
         Method[] methods = clazz.getMethods();
