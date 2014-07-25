@@ -4,6 +4,8 @@ import com.wordnik.swagger.converter.ModelConverters;
 import com.wordnik.swagger.model.Model;
 import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.multipart.MultipartFile;
+import scala.Option;
+import scala.collection.immutable.HashMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -66,11 +68,11 @@ public class ModelUtils {
     }
 
     public static void addModels(final Class<?> clazz, final Map<String, Model> models) {
-        scala.collection.immutable.List<Model> modelOption = ModelConverters.readAll(clazz);
-        scala.collection.Iterator<Model> iterator = modelOption.iterator();
-        while (iterator.hasNext()) {
-            Model model = iterator.next();
-            if (!isIgnorableModel(model.name())) {
+        Option<Model> modelOption = ModelConverters.read(clazz, new HashMap<>());
+        Model model;
+        if(!modelOption.isEmpty()) {
+           model = modelOption.get();
+            if(!isIgnorableModel(model.name())) {
                 models.put(model.name(), model);
             }
         }

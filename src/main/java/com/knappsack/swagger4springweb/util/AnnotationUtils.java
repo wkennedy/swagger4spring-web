@@ -108,7 +108,7 @@ public class AnnotationUtils {
      * @return Set - all methods of this class with the specified annotation
      */
     public static Set<Method> getAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        Method[] methods = clazz.getMethods();
+        Method[] methods = clazz.getDeclaredMethods();
         Set<Method> annotatedMethods = new HashSet<>(methods.length);
         for (Method method : methods) {
             if( method.isAnnotationPresent(annotationClass)){

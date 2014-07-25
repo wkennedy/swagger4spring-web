@@ -9,7 +9,6 @@ import com.wordnik.swagger.core.util.JsonSerializer;
 import com.wordnik.swagger.model.ApiDescription;
 import com.wordnik.swagger.model.ApiListing;
 import com.wordnik.swagger.model.ApiListingReference;
-import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.ResourceListing;
 import org.junit.Test;
 
@@ -48,15 +47,13 @@ public class ApiParserTest extends AbstractTest {
         ApiParser apiParser = createApiParser(Arrays.asList(BASE_CONTROLLER_PACKAGE + ".exclude"));
         Map<String, ApiListing> documents = apiParser.createApiListings();
 
-        assertEquals(2, documents.size()); // ExcludeClassTestController excluded completely
+        assertEquals(1, documents.size()); // ExcludeClassTestController excluded completely
 
         // validate that we don't expose any excluded operations in the documents
         for (ApiListing documentation : documents.values()) {
+            assertTrue(ScalaToJavaUtil.toJavaList(documentation.apis()).size() == 2);
             for (ApiDescription api : ScalaToJavaUtil.toJavaList(documentation.apis())) {
-                for (Operation op : ScalaToJavaUtil.toJavaList(api.operations())) {
-                    assertTrue("The operation " + op.nickname() + " should be excluded",
-                            "exclude".equals(op.summary()));
-                }
+                assertTrue(ScalaToJavaUtil.toJavaList(api.operations()).size() == 1);
             }
         }
     }

@@ -19,6 +19,7 @@ import java.lang.reflect.{ Method, Type, Field }
 import java.lang.annotation.Annotation
 
 import scala.collection.mutable.ListBuffer
+import com.knappsack.swagger4springweb.annotation.ApiExclude
 
 trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
 
@@ -80,16 +81,23 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
                       parentParams: List[Parameter],
                       parentMethods: ListBuffer[Method]
                       ) = {
-    val api = method.getAnnotation(classOf[Api])
+//    val api = method.getAnnotation(classOf[Api])
     val responseClass = {
-      val baseName = apiOperation.response.getName
-      val output = apiOperation.responseContainer match {
-        case "" => baseName
-        case e: String => "%s[%s]".format(e, baseName)
+      if(apiOperation != null){
+        val baseName = apiOperation.response.getName
+        val output = apiOperation.responseContainer match {
+          case "" => baseName
+          case e: String => "%s[%s]".format(e, baseName)
+        }
+        output
       }
-      output
+      else {
+        if(!"javax.ws.rs.core.Response".equals(method.getReturnType.getCanonicalName))
+          method.getReturnType.getName
+        else
+          "void"
+      }
     }
-
     var paramAnnotations: Array[Array[java.lang.annotation.Annotation]] = null
     var paramTypes: Array[java.lang.Class[_]] = null
     var genericParamTypes: Array[java.lang.reflect.Type] = null
@@ -104,30 +112,41 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
       genericParamTypes = parentMethods.map(pm => pm.getGenericParameterTypes).reduceRight(_ ++ _) ++ method.getGenericParameterTypes
     }
 
-    val produces = Option(apiOperation.produces) match {
-      case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-      case _ => method.getAnnotation(classOf[RequestMapping]).produces() match {
-        case e: Array[String] => e.toList
-        case _ => List()
+    val (nickname, produces, consumes, protocols, authorizations) = {
+      if(apiOperation != null) {
+        (
+          (if(apiOperation.nickname != null && apiOperation.nickname != "")
+            apiOperation.nickname
+          else
+            method.getName
+            ),
+          Option(apiOperation.produces) match {
+            case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+            case _ => method.getAnnotation(classOf[RequestMapping]).produces() match {
+              case e: Array[String] => e.toList
+              case _ => List()
+            }
+          },
+          Option(apiOperation.consumes) match {
+            case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+            case _ => method.getAnnotation(classOf[RequestMapping]).consumes() match {
+              case e: Array[String] => e.toList
+              case _ => List()
+            }
+          },
+          Option(apiOperation.protocols) match {
+            case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+            case _ => List()
+          },
+          Option(apiOperation.authorizations) match {
+            case Some(e) => (for(a <- e) yield {
+              val scopes = (for(s <- a.scopes) yield com.wordnik.swagger.model.AuthorizationScope(s.scope, s.description)).toArray
+              new com.wordnik.swagger.model.Authorization(a.value, scopes)
+            }).toList
+            case _ => List()
+          })
       }
-    }
-    val consumes = Option(apiOperation.consumes) match {
-      case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-      case _ => method.getAnnotation(classOf[RequestMapping]).consumes() match {
-        case e: Array[String] => e.toList
-        case _ => List()
-      }
-    }
-    val protocols = Option(apiOperation.protocols) match {
-      case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-      case _ => List()
-    }
-    val authorizations:List[com.wordnik.swagger.model.Authorization] = Option(apiOperation.authorizations) match {
-      case Some(e) => (for(a <- e) yield {
-        val scopes = (for(s <- a.scopes) yield com.wordnik.swagger.model.AuthorizationScope(s.scope, s.description)).toArray
-        new com.wordnik.swagger.model.Authorization(a.value, scopes)
-      }).toList
-      case _ => List()
+      else(method.getName, List(), List(), List(), List())
     }
     val params = parentParams ++ (for((annotations, paramType, genericParamType) <- (paramAnnotations, paramTypes, genericParamTypes).zipped.toList) yield {
       if(annotations.length > 0) {
@@ -147,38 +166,43 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
             LOGGER.debug("processing " + param)
             val allowableValues = toAllowableValues(param.allowableValues)
             Parameter(
-              param.name,
-              Option(readString(param.value)),
-              Option(param.defaultValue).filter(_.trim.nonEmpty),
-              param.required,
-              param.allowMultiple,
-              param.dataType,
-              allowableValues,
-              param.paramType,
-              Option(param.access).filter(_.trim.nonEmpty))
+              name = param.name,
+              description = Option(readString(param.value)),
+              defaultValue = Option(param.defaultValue).filter(_.trim.nonEmpty),
+              required = param.required,
+              allowMultiple = param.allowMultiple,
+              dataType = param.dataType,
+              allowableValues = allowableValues,
+              paramType = param.paramType,
+              paramAccess = Option(param.access).filter(_.trim.nonEmpty))
           }).toList
         }
         case _ => List()
       }
     }
 
+    val (summary, notes, position) = {
+      if(apiOperation != null) (apiOperation.value, apiOperation.notes, apiOperation.position)
+      else ("","",0)
+    }
+
     Operation(
-      parseHttpMethod(method, apiOperation),
-      apiOperation.value,
-      apiOperation.notes,
-      responseClass,
-      method.getName,
-      apiOperation.position,
-      produces,
-      consumes,
-      protocols,
-      authorizations,
-      params ++ implicitParams,
-      apiResponses,
-      Option(isDeprecated))
+      method = parseHttpMethod(method, apiOperation),
+      summary = summary,
+      notes = notes,
+      responseClass = responseClass,
+      nickname = nickname,
+      position = position,
+      produces = produces,
+      consumes = consumes,
+      protocols = protocols,
+      authorizations = authorizations,
+      parameters = params ++ implicitParams,
+      responseMessages = apiResponses,
+      `deprecated` = Option(isDeprecated))
   }
 
-  def readMethod(method: Method, parentParams: List[Parameter], parentMethods: ListBuffer[Method]) = {
+  def readMethod(method: Method, parentParams: List[Parameter], parentMethods: ListBuffer[Method]): Option[Operation] = {
     val apiOperation = method.getAnnotation(classOf[ApiOperation])
     val responseAnnotation = method.getAnnotation(classOf[ApiResponses])
     val apiResponses = {
@@ -194,7 +218,12 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
     }
     val isDeprecated = Option(method.getAnnotation(classOf[Deprecated])).map(m => "true").getOrElse(null)
 
-    parseOperation(method, apiOperation, apiResponses, isDeprecated, parentParams, parentMethods)
+    val hidden =if(method.getAnnotation(classOf[ApiExclude]) != null) true
+    else  if(apiOperation != null) apiOperation.hidden
+    else false
+
+    if(!hidden) Some(parseOperation(method, apiOperation, apiResponses, isDeprecated, parentParams, parentMethods))
+    else None
   }
 
   def appendOperation(endpoint: String, path: String, op: Operation, operations: ListBuffer[Tuple3[String, String, ListBuffer[Operation]]]) = {
@@ -204,21 +233,13 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
     }
   }
 
-//  def read(docRoot: String, cls: Class[_], config: SwaggerConfig): Option[ApiListing] = {
-//    var parentPath = ""
-//    if(cls.getAnnotation(classOf[RequestMapping]) != null) {
-//      val paths = cls.getAnnotation(classOf[RequestMapping]).value()
-//      if(paths.size > 0) {
-//        parentPath = paths(0)
-//      }
-//    }
-//
-//    readRecursive(docRoot, parentPath.replace("//","/"), cls, config, new ListBuffer[Tuple3[String, String, ListBuffer[Operation]]], new ListBuffer[Method])
-//  }
-
   def read(docRoot: String, cls: Class[_], config: SwaggerConfig): Option[ApiListing] = {
     readRecursive(docRoot, "", cls, config, new ListBuffer[Tuple3[String, String, ListBuffer[Operation]]], new ListBuffer[Method])
   }
+
+  var ignoredRoutes: Set[String] = Set()
+
+  def ignoreRoutes = ignoredRoutes
 
   def readRecursive(
                      docRoot: String,
@@ -227,30 +248,49 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
                      operations: ListBuffer[Tuple3[String, String, ListBuffer[Operation]]],
                      parentMethods: ListBuffer[Method]): Option[ApiListing] = {
     val api = cls.getAnnotation(classOf[Api])
+    if(api == null || cls.getAnnotation(classOf[ApiExclude]) != null) return None
 
-    // must have @Api annotation to process!
-    if(api != null) {
-      val consumes = Option(api.consumes) match {
-        case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-        case _ => cls.getAnnotation(classOf[RequestMapping]).consumes() match {
-          case e: Array[String] => e.toList
-          case _ => List()
-        }
+    val pathAnnotation = cls.getAnnotation(classOf[RequestMapping])
+
+    val r = Option(api) match {
+      case Some(api) => api.value
+      case None => Option(pathAnnotation) match {
+        case Some(p) => p.value()(0)
+        case None => null
       }
-      val produces = Option(api.produces) match {
-        case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-        case _ => cls.getAnnotation(classOf[RequestMapping]).produces() match {
-          case e: Array[String] => e.toList
-          case _ => List()
-        }
+    }
+    if(r != null && !ignoreRoutes.contains(r)) {
+//      var resourcePath = addLeadingSlash(r)
+      val position = Option(api) match {
+        case Some(api) => api.position
+        case None => 0
       }
-      val protocols = Option(api.protocols) match {
-        case Some(e) if(e != "") => e.split(",").map(_.trim).toList
-        case _ => List()
-      }
-      val description = api.description match {
-        case e: String if(e != "") => Some(e)
-        case _ => None
+      val (consumes, produces, protocols, description) = {
+        if(api != null){
+          (Option(api.consumes) match {
+            case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+            case _ => cls.getAnnotation(classOf[RequestMapping]).consumes() match {
+              case e: Array[String] => e.toList
+              case _ => List()
+            }
+          },
+            Option(api.produces) match {
+              case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+              case _ => cls.getAnnotation(classOf[RequestMapping]).produces() match {
+                case e: Array[String] => e.toList
+                case _ => List()
+              }
+            },
+            Option(api.protocols) match {
+              case Some(e) if(e != "") => e.split(",").map(_.trim).toList
+              case _ => List()
+            },
+            api.description match {
+              case e: String if(e != "") => Some(e)
+              case _ => None
+            }
+            )}
+        else ((List(), List(), List(), None))
       }
       // look for method-level annotated properties
       val parentParams: List[Parameter] = (for(field <- getAllFields(cls))
@@ -272,9 +312,8 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
       }
         ).flatten.toList
 
-      for(method <- cls.getMethods) {
-        val returnType = method.getReturnType
-        method.getAnnotations.size
+      for(method <- cls.getDeclaredMethods) {
+        val returnType = findSubresourceType(method)
         var path = ""
         if(method.getAnnotation(classOf[RequestMapping]) != null) {
           val paths = method.getAnnotation(classOf[RequestMapping]).value()
@@ -282,7 +321,7 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
             path = paths(0)
           }
         }
-//        val endpoint = (parentPath + /*api.value + */ pathFromMethod(method)).replace("//", "/")
+//      val endpoint = (parentPath + pathFromMethod(method)).replace("//", "/")
         val endpoint = parentPath + api.value + pathFromMethod(method)
         Option(returnType.getAnnotation(classOf[Api])) match {
           case Some(e) => {
@@ -292,9 +331,9 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
             parentMethods -= method
           }
           case _ => {
-            if(method.getAnnotation(classOf[ApiOperation]) != null) {
-              val op = readMethod(method, parentParams, parentMethods)
-              appendOperation(endpoint, path, op, operations)
+            readMethod(method, parentParams, parentMethods) match {
+              case Some(op) => appendOperation(endpoint, path, op, operations)
+              case None => None
             }
           }
         }
@@ -329,7 +368,7 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
         produces = produces,
         consumes = consumes,
         protocols = protocols,
-        position = api.position)
+        position = position)
       )
     }
     else None
@@ -378,10 +417,11 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
   }
 
   def parseHttpMethod(method: Method, op: ApiOperation): String = {
-    if (op.httpMethod() != null && op.httpMethod().trim().length() > 0)
+    if (op != null && op.httpMethod() != null && op.httpMethod().trim().length() > 0)
       op.httpMethod().trim
     else {
-      val requestMapping = method.getAnnotation(classOf[RequestMapping]).method()(0)
+      val requestMappingAnnotation = method.getAnnotation(classOf[RequestMapping])
+      val requestMapping = if(requestMappingAnnotation != null && !requestMappingAnnotation.method().isEmpty) requestMappingAnnotation.method()(0) else "GET"
       if(RequestMethod.GET.equals(requestMapping)) "GET"
       else if(RequestMethod.DELETE.equals(requestMapping)) "DELETE"
 //      else if(method.getAnnotation(classOf[PATCH]) != RequestMethod.) "PATCH"

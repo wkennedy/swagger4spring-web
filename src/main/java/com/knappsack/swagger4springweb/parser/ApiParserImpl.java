@@ -10,7 +10,6 @@ import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.model.*;
-import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +20,6 @@ import scala.Option;
 
 import java.lang.reflect.Method;
 import java.util.*;
-
-import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class ApiParserImpl implements ApiParser {
 
