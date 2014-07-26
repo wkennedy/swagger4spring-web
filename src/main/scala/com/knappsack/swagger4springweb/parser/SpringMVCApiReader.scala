@@ -1,25 +1,20 @@
 package com.knappsack.swagger4springweb.parser
 
 
-import org.springframework.web.bind.annotation._
-import scala.Some
-import scala.Tuple3
+import java.lang.annotation.Annotation
+import java.lang.reflect.{Field, Method, Type}
 
+import com.knappsack.swagger4springweb.annotation.ApiExclude
 import com.wordnik.swagger.annotations._
 import com.wordnik.swagger.config._
-import com.wordnik.swagger.reader.{ ClassReader, ClassReaderUtils }
 import com.wordnik.swagger.core._
 import com.wordnik.swagger.core.util._
-import com.wordnik.swagger.core.ApiValues._
 import com.wordnik.swagger.model._
-
+import com.wordnik.swagger.reader.{ClassReader, ClassReaderUtils}
 import org.slf4j.LoggerFactory
-
-import java.lang.reflect.{ Method, Type, Field }
-import java.lang.annotation.Annotation
+import org.springframework.web.bind.annotation._
 
 import scala.collection.mutable.ListBuffer
-import com.knappsack.swagger4springweb.annotation.ApiExclude
 
 trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
 
@@ -218,7 +213,8 @@ trait SpringMVCApiReader extends ClassReader with ClassReaderUtils {
     }
     val isDeprecated = Option(method.getAnnotation(classOf[Deprecated])).map(m => "true").getOrElse(null)
 
-    val hidden =if(method.getAnnotation(classOf[ApiExclude]) != null) true
+    //Don't process methods that are marked with ApiExclude or are synthetic (in the case of Java lambda expressions)
+    val hidden = if(method.getAnnotation(classOf[ApiExclude]) != null || method.isSynthetic) true
     else  if(apiOperation != null) apiOperation.hidden
     else false
 
