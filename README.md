@@ -12,9 +12,10 @@ To include swagger4spring-web in your project, you need to include the jar in yo
         <dependency>
             <groupId>com.knappsack</groupId>
             <artifactId>swagger4spring-web</artifactId>
-            <version>0.3.3</version>
+            <version>0.3.5</version>
         </dependency>
 
+Java 8+ users, please compile your source using the javac "-parameters" argument.  This ensures that your parameter names display correctly in your API documentation.
 
 In order to use swagger4spring-web in your project, you need to declare an ApiDocumentationController bean in your
 servlet context.  For example:
@@ -102,7 +103,7 @@ The following Swagger annotations are supported:
 https://github.com/wkennedy/swagger4spring-web/wiki/Change-Log
 
 ##License
-Copyright (c) 2013 Will Kennedy
+Copyright (c) 2014 Will Kennedy
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
