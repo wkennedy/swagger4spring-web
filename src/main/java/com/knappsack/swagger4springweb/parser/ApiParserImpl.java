@@ -38,7 +38,7 @@ public class ApiParserImpl implements ApiParser {
     private boolean ignoreUnusedPathVariables;
     private SwaggerConfig swaggerConfig;
 
-    public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, String basePath, String servletPath,
+    public ApiParserImpl(ApiInfo apiInfo, List<AuthorizationType> authorizationTypes, List<String> baseControllerPackage, String basePath, String servletPath,
             String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables,
             List<Filter> filters) {
 
@@ -56,6 +56,7 @@ public class ApiParserImpl implements ApiParser {
         swaggerConfig.setApiVersion(apiVersion);
         swaggerConfig.setBasePath(basePath);
         swaggerConfig.setSwaggerVersion(swaggerVersion);
+        swaggerConfig.setAuthorizations(JavaToScalaUtil.toScalaList(authorizationTypes));
 
         this.filters = new ArrayList<Filter>();
         this.filters.add(new ApiExcludeFilter()); // @ApiExclude filter

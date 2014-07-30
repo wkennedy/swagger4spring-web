@@ -41,7 +41,7 @@
         <org.slf4j-version>1.6.4</org.slf4j-version>
         <org.logback-version>1.0.1</org.logback-version>
         <junit-version>4.9</junit-version>
-        <java.version>1.8</java.version>
+        <java.version>1.7</java.version>
         <jackson-module-scala_2.10.version>2.4.1</jackson-module-scala_2.10.version>
         <org.reflections.version>0.9.9-RC2</org.reflections.version>
         <servlet-api-version>3.1.0</servlet-api-version>

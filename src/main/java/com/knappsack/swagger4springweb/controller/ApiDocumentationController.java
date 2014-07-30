@@ -5,6 +5,7 @@ import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
 import com.wordnik.swagger.model.ApiInfo;
 import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.AuthorizationType;
 import com.wordnik.swagger.model.ResourceListing;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,7 @@ public class ApiDocumentationController {
     private boolean basePathFromReferer = false;
     private ResourceListing resourceList;
     private ApiInfo apiInfo;
+    private List<AuthorizationType> authorizationTypes = new ArrayList<>();
     private List<Filter> filters;
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
@@ -99,7 +101,7 @@ public class ApiDocumentationController {
             if (request != null) {
                 servletPath = request.getServletPath();
             }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, authorizationTypes, getControllerPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
             documentation = apiParser.createApiListings();
         }
@@ -113,7 +115,7 @@ public class ApiDocumentationController {
                 servletPath = request.getServletPath();
                 servletPath = servletPath.replace("/resourceList", "");
             }
-            ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
+            ApiParser apiParser = new ApiParserImpl(apiInfo, authorizationTypes, getControllerPackages(), getBasePath(),
                     servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
             resourceList = apiParser.getResourceListing(getDocs(request));
         }
@@ -221,6 +223,16 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setApiInfo(ApiInfo apiInfo) {
         this.apiInfo = apiInfo;
+    }
+
+    @SuppressWarnings("unused")
+    public List<AuthorizationType> getAuthorizationTypes() {
+        return authorizationTypes;
+    }
+
+    @SuppressWarnings("unused")
+    public void setAuthorizationTypes(List<AuthorizationType> authorizationTypes) {
+        this.authorizationTypes = authorizationTypes;
     }
 
     @SuppressWarnings("unused")

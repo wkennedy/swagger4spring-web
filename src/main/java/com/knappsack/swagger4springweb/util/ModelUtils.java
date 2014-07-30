@@ -5,7 +5,6 @@ import com.wordnik.swagger.model.Model;
 import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.multipart.MultipartFile;
 import scala.Option;
-import scala.collection.immutable.HashMap;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -68,7 +67,7 @@ public class ModelUtils {
     }
 
     public static void addModels(final Class<?> clazz, final Map<String, Model> models) {
-        Option<Model> modelOption = ModelConverters.read(clazz, new HashMap<>());
+        Option<Model> modelOption = ModelConverters.read(clazz, JavaToScalaUtil.toScalaImmutableMap(new java.util.HashMap<String, String>()));
         Model model;
         if(!modelOption.isEmpty()) {
            model = modelOption.get();

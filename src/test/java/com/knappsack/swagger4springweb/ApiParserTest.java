@@ -88,7 +88,7 @@ public class ApiParserTest extends AbstractTest {
     }
 
     private ApiParser createApiParser(List<String> controllerPackages) {
-        return new ApiParserImpl(API_INFO, controllerPackages, "http://localhost:8080/api", "/api", "v1",
+        return new ApiParserImpl(API_INFO, AUTHORIZATION_TYPES, controllerPackages, "http://localhost:8080/api", "/api", "v1",
                 new ArrayList<String>(), true, null);
     }
 }
