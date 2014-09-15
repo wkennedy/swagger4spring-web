@@ -62,7 +62,7 @@ public class ApiDocumentationController {
                 HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         //trim the operation request mapping from the desired value
         handlerMappingPath = handlerMappingPath
-                .substring(handlerMappingPath.lastIndexOf("/doc") + 4, handlerMappingPath.length());
+                .substring(handlerMappingPath.indexOf("/doc/") + 4, handlerMappingPath.length());
 
         Map<String, ApiListing> docs = getDocs(request);
         if (docs == null) {
