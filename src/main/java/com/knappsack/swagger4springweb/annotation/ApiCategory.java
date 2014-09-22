@@ -14,6 +14,5 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ApiCategory {
   java.lang.String value();
-
-  // TODO Description
+  java.lang.String description() default "";
 }
