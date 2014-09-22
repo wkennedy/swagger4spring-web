@@ -1,23 +1,21 @@
 package com.knappsack.swagger4springweb;
 
-import com.knappsack.swagger4springweb.parser.ApiParser;
-import com.knappsack.swagger4springweb.parser.ApiParserImpl;
-import com.wordnik.swagger.model.ApiDescription;
-import com.wordnik.swagger.model.ApiListing;
-import junit.framework.*;
-import org.junit.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import scala.Function1;
-import scala.collection.Iterator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+
+import com.knappsack.swagger4springweb.parser.ApiParser;
+import com.knappsack.swagger4springweb.parser.ApiParserImpl;
+import com.wordnik.swagger.model.ApiDescription;
+import com.wordnik.swagger.model.ApiListing;
+
+import scala.collection.Iterator;
 
 
 public class ApiCategoryTest extends AbstractTest {
@@ -33,15 +31,22 @@ public class ApiCategoryTest extends AbstractTest {
     assertTrue(documents.containsKey("light"));
 
     scala.collection.immutable.List<ApiDescription> dark = documents.get("dark").apis();
-//    assertEquals("dark colors expected", 2, dark.size());
+    assertEquals("dark colors expected", 2, dark.size());
 
-    boolean foundBlack, foundBlue;
+    boolean foundBlack = false, foundBlue = false;
     for (Iterator<ApiDescription> it = dark.iterator(); it.hasNext();) {
       ApiDescription description = it.next();
-      description.path().equals("sky");
-      System.out.println(description.path());
 
+      if (description.operations().iterator().next().nickname().equals("sky")) {
+        foundBlue = true;
+      }
+      if (description.operations().iterator().next().nickname().equals("earth")) {
+        foundBlack = true;
+      }
     }
+
+    assertTrue("found black", foundBlack);
+    assertTrue("found blue", foundBlue);
 
   }
 

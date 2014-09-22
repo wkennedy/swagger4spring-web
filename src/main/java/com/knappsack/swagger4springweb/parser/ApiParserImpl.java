@@ -1,28 +1,44 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.knappsack.swagger4springweb.annotation.ApiCategory;
-import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
-import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
-import com.knappsack.swagger4springweb.filter.Filter;
-import com.knappsack.swagger4springweb.util.AnnotationUtils;
-import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
-import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.config.SwaggerConfig;
-import com.wordnik.swagger.model.*;
+import static org.reflections.ReflectionUtils.withAnnotation;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.knappsack.swagger4springweb.annotation.ApiCategory;
+import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
+import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
+import com.knappsack.swagger4springweb.filter.Filter;
+import com.knappsack.swagger4springweb.util.AnnotationUtils;
+import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
+import com.knappsack.swagger4springweb.util.ApiListingUtil;
+import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.config.SwaggerConfig;
+import com.wordnik.swagger.model.ApiDescription;
+import com.wordnik.swagger.model.ApiInfo;
+import com.wordnik.swagger.model.ApiListing;
+import com.wordnik.swagger.model.ApiListingReference;
+import com.wordnik.swagger.model.Model;
+import com.wordnik.swagger.model.Operation;
+import com.wordnik.swagger.model.ResourceListing;
+
 import scala.Option;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.*;
-
-import static org.reflections.ReflectionUtils.withAnnotation;
 
 public class ApiParserImpl implements ApiParser {
 
@@ -136,6 +152,11 @@ public class ApiParserImpl implements ApiParser {
             }
             ApiCategory apiCategory = controllerClass.getAnnotation(ApiCategory.class);
             if (apiCategory != null && apiCategory.value() != null) {
+              ApiListing existingApiListing = apiListingMap.get(apiCategory.value());
+              if (existingApiListing != null) {
+                apiListing = ApiListingUtil.combine(existingApiListing, apiListing);
+              }
+
               apiListingMap.put(apiCategory.value(), apiListing);
               continue;
             }
