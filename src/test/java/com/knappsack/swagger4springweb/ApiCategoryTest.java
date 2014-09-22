@@ -2,11 +2,14 @@ package com.knappsack.swagger4springweb;
 
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
+import com.wordnik.swagger.model.ApiDescription;
 import com.wordnik.swagger.model.ApiListing;
 import junit.framework.*;
 import org.junit.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import scala.Function1;
+import scala.collection.Iterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,9 +28,20 @@ public class ApiCategoryTest extends AbstractTest {
     ApiParser apiParser = createApiParser();
     Map<String, ApiListing> documents = apiParser.createApiListings();
 
-    assertEquals(2, documents.size());
+    assertEquals("api keys expected", 2, documents.size());
     assertTrue(documents.containsKey("dark"));
     assertTrue(documents.containsKey("light"));
+
+    scala.collection.immutable.List<ApiDescription> dark = documents.get("dark").apis();
+//    assertEquals("dark colors expected", 2, dark.size());
+
+    boolean foundBlack, foundBlue;
+    for (Iterator<ApiDescription> it = dark.iterator(); it.hasNext();) {
+      ApiDescription description = it.next();
+      description.path().equals("sky");
+      System.out.println(description.path());
+
+    }
 
   }
 

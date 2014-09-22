@@ -1,5 +1,6 @@
 package com.knappsack.swagger4springweb.parser;
 
+import com.knappsack.swagger4springweb.annotation.ApiCategory;
 import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
 import com.knappsack.swagger4springweb.filter.Filter;
@@ -132,6 +133,11 @@ public class ApiParserImpl implements ApiParser {
 
             if (apiListing.apis() == null) {
                 apiListing = processMethods(requestMappingMethods, controllerClass, apiListing, description);
+            }
+            ApiCategory apiCategory = controllerClass.getAnnotation(ApiCategory.class);
+            if (apiCategory != null && apiCategory.value() != null) {
+              apiListingMap.put(apiCategory.value(), apiListing);
+              continue;
             }
 
             // controllers without any operations are excluded from the apiListingMap list
