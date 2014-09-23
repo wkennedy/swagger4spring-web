@@ -2,6 +2,7 @@ package com.knappsack.swagger4springweb.parser;
 
 import static org.reflections.ReflectionUtils.withAnnotation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -151,7 +152,7 @@ public class ApiParserImpl implements ApiParser {
             if (apiListing.apis() == null) {
                 apiListing = processMethods(requestMappingMethods, controllerClass, apiListing, description);
             }
-            ApiCategory apiCategory = controllerClass.getAnnotation(ApiCategory.class);
+          ApiCategory apiCategory = getApiCategoryAnnotation(controllerClass);
             if (apiCategory != null && apiCategory.value() != null) {
               String key = prependSlashIfMissing(apiCategory.value());
               ApiListing existingApiListing = apiListingMap.get(key);
@@ -171,6 +172,17 @@ public class ApiParserImpl implements ApiParser {
 
         return apiListingMap;
     }
+
+  private ApiCategory getApiCategoryAnnotation(Class<?> controllerClass) {
+    Annotation[] annotations = controllerClass.getAnnotations();
+    for (Annotation annotation : annotations) {
+      ApiCategory value = org.springframework.core.annotation.AnnotationUtils.getAnnotation(annotation, ApiCategory.class);
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
+  }
 
   private void addApiListingToMap(ApiListing apiListing, String key) {
     apiListingMap.put(key, ApiListingUtil.sortApisByPath(apiListing));

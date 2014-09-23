@@ -5,14 +5,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.knappsack.swagger4springweb.annotation.ApiCategory;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 @Controller
 @RequestMapping("/api/v1/white")
 @Api(value = "/api/v1/white",description = "Test Category, white")
-@ApiCategory("light")
+@LightCategory
 public class WhiteController {
 
   @ApiOperation("White is fortune")

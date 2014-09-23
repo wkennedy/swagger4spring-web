@@ -6,12 +6,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.knappsack.swagger4springweb.annotation.ApiCategory;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 @Controller
 @RequestMapping("/api/v1/black")
-@ApiCategory("dark")
+@DarkCategory
 public class BlackController {
 
   @ApiOperation("This is for testing ordering")
