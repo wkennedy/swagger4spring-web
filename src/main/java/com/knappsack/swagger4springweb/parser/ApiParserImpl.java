@@ -25,8 +25,8 @@ import com.knappsack.swagger4springweb.controller.ApiDocumentationController;
 import com.knappsack.swagger4springweb.filter.ApiExcludeFilter;
 import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.util.AnnotationUtils;
-import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ApiListingUtil;
+import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.config.SwaggerConfig;
@@ -87,7 +87,7 @@ public class ApiParserImpl implements ApiParser {
         List<ApiListingReference> apiListingReferences = new ArrayList<ApiListingReference>();
         for (String key : apiListingMap.keySet()) {
             ApiListing apiListing = apiListingMap.get(key);
-            String docPath = "/doc"; //servletPath + "/doc"; //"/api/doc";
+          String docPath = "/doc"; //servletPath + "/doc"; //"/api/doc";
             ApiListingReference apiListingReference = new ApiListingReference(docPath + key, apiListing.description(),
                     apiListing.position());
 
@@ -115,7 +115,7 @@ public class ApiParserImpl implements ApiParser {
                 swaggerConfig.info());
     }
 
-    public Map<String, ApiListing> createApiListings() {
+  public Map<String, ApiListing> createApiListings() {
         Set<Class<?>> controllerClasses = new HashSet<Class<?>>();
         for (String controllerPackage : controllerPackages) {
             Reflections reflections = new Reflections(controllerPackage);
@@ -152,12 +152,13 @@ public class ApiParserImpl implements ApiParser {
             }
             ApiCategory apiCategory = controllerClass.getAnnotation(ApiCategory.class);
             if (apiCategory != null && apiCategory.value() != null) {
-              ApiListing existingApiListing = apiListingMap.get(apiCategory.value());
+              String key = prependSlashIfMissing(apiCategory.value());
+              ApiListing existingApiListing = apiListingMap.get(key);
               if (existingApiListing != null) {
                 apiListing = ApiListingUtil.combine(existingApiListing, apiListing);
               }
 
-              apiListingMap.put(apiCategory.value(), apiListing);
+              apiListingMap.put(key, apiListing);
               continue;
             }
 
@@ -186,11 +187,9 @@ public class ApiParserImpl implements ApiParser {
                 resourcePath = controllerClass.getName();
             }
         }
-        if (!resourcePath.startsWith("/")) {
-            resourcePath = "/" + resourcePath;
-        }
+      resourcePath = prependSlashIfMissing(resourcePath);
 
-        String docRoot = resourcePath;
+      String docRoot = resourcePath;
         if(docRoot.contains(controllerClass.getName())) {
             docRoot = docRoot.replace(controllerClass.getName(), "");
         }
@@ -294,6 +293,13 @@ public class ApiParserImpl implements ApiParser {
             }
         }
         return false;
+    }
+
+    private String prependSlashIfMissing(String key) {
+      if (!key.startsWith("/")) {
+        key = "/" + key;
+      }
+      return key;
     }
 
 }

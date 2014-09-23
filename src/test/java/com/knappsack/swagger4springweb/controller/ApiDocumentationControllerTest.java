@@ -1,15 +1,18 @@
 package com.knappsack.swagger4springweb.controller;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.servlet.HandlerMapping;
+
 import com.knappsack.swagger4springweb.AbstractTest;
 import com.knappsack.swagger4springweb.util.ScalaToJavaUtil;
 import com.wordnik.swagger.model.ApiListing;
 import com.wordnik.swagger.model.ApiListingReference;
 import com.wordnik.swagger.model.ResourceListing;
-import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.servlet.HandlerMapping;
-
-import static org.junit.Assert.*;
 
 public class ApiDocumentationControllerTest extends AbstractTest {
 
@@ -41,7 +44,6 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         assertNotNull(documentation);
         assertEquals("v1", documentation.apiVersion());
         assertEquals(END_POINT_PATHS.size(), documentation.apis().size());
-        assertEquals("/doc/api/v1/test", documentation.apis().apply(0).path());
 
         for (ApiListingReference endPoint : ScalaToJavaUtil.toJavaList(documentation.apis())) {
             assertTrue(END_POINT_PATHS.contains(endPoint.path()));

@@ -11,7 +11,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 @Controller
 @RequestMapping("/api/v1/white")
-@Api(value = "Test Category, white")
+@Api(value = "/api/v1/white",description = "Test Category, white")
 @ApiCategory("light")
 public class WhiteController {
 
