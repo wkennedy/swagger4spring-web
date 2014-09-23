@@ -14,6 +14,12 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @ApiCategory("dark")
 public class BlackController {
 
+  @ApiOperation("This is for testing ordering")
+  @RequestMapping(value = "/x-planet", method = GET)
+  public String xPlanet() {
+    return "x-planet";
+  }
+
   @ApiOperation("Black is earth")
   @RequestMapping(value = "/earth", method = GET)
   public String earth() {

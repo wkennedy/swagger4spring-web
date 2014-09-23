@@ -33,22 +33,12 @@ public class ApiCategoryTest extends AbstractTest {
     assertTrue(documents.containsKey("/light"));
 
     scala.collection.immutable.List<ApiDescription> dark = documents.get("/dark").apis();
-    assertEquals("dark colors expected", 2, dark.size());
+    assertEquals("dark colors expected", 3, dark.size());
 
-    boolean foundBlack = false, foundBlue = false;
-    for (Iterator<ApiDescription> it = dark.iterator(); it.hasNext(); ) {
-      ApiDescription description = it.next();
-
-      if (description.operations().iterator().next().nickname().equals("sky")) {
-        foundBlue = true;
-      }
-      if (description.operations().iterator().next().nickname().equals("earth")) {
-        foundBlack = true;
-      }
-    }
-
-    assertTrue("found black", foundBlack);
-    assertTrue("found blue", foundBlue);
+    // Validate alphabetic ordering
+    assertTrue("earth should be first", dark.apply(0).path().equals("/api/v1/black/earth"));
+    assertTrue("x-planet should be second", dark.apply(1).path().equals("/api/v1/black/x-planet"));
+    assertTrue("sky should be third", dark.apply(2).path().equals("/api/v1/blue/sky"));
 
   }
 

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class ApiParserImpl implements ApiParser {
 
     private static final String swaggerVersion = com.wordnik.swagger.core.SwaggerSpec.version();
 
-    private final Map<String, ApiListing> apiListingMap = new HashMap<String, ApiListing>();
+    private final Map<String, ApiListing> apiListingMap = new TreeMap<>();
 
     private final List<String> controllerPackages;
     private final List<String> ignorableAnnotations;
@@ -158,18 +159,23 @@ public class ApiParserImpl implements ApiParser {
                 apiListing = ApiListingUtil.combine(existingApiListing, apiListing);
               }
 
-              apiListingMap.put(key, apiListing);
+              addApiListingToMap(apiListing, key);
               continue;
             }
 
             // controllers without any operations are excluded from the apiListingMap list
             if (apiListing.apis() != null && !apiListing.apis().isEmpty()) {
-                apiListingMap.put(apiListing.resourcePath(), apiListing);
+              addApiListingToMap(apiListing, apiListing.resourcePath());
             }
         }
 
         return apiListingMap;
     }
+
+  private void addApiListingToMap(ApiListing apiListing, String key) {
+    apiListingMap.put(key, ApiListingUtil.sortApisByPath(apiListing));
+  }
+
 
     private ApiListing processControllerApi(Class<?> controllerClass) {
         String resourcePath = "";
