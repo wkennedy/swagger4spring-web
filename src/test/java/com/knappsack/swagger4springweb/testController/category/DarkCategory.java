@@ -14,5 +14,4 @@ import com.knappsack.swagger4springweb.annotation.ApiCategory;
 @Target(ElementType.TYPE)
 @ApiCategory(value = "dark", description = "This is so dark")
 public @interface DarkCategory {
-  String value() default "";
 }

@@ -14,5 +14,4 @@ import com.knappsack.swagger4springweb.annotation.ApiCategory;
 @Target(ElementType.TYPE)
 @ApiCategory(value = "light", description = "This is so bright")
 public @interface LightCategory {
-  String value() default "";
 }
