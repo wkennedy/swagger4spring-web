@@ -1,27 +1,35 @@
 package com.knappsack.swagger4springweb.parser;
 
-import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
-import com.wordnik.swagger.annotations.*;
-import com.wordnik.swagger.converter.ModelConverters;
-import com.wordnik.swagger.model.*;
-import com.wordnik.swagger.model.Authorization;
-import com.wordnik.swagger.model.AuthorizationScope;
-import org.apache.commons.lang.ArrayUtils;
-import org.springframework.http.HttpMethod;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import scala.Option;
+import static java.lang.String.format;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
+import org.apache.commons.lang.ArrayUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+import com.wordnik.swagger.converter.ModelConverters;
+import com.wordnik.swagger.model.Authorization;
+import com.wordnik.swagger.model.AuthorizationScope;
+import com.wordnik.swagger.model.Model;
+import com.wordnik.swagger.model.Operation;
+import com.wordnik.swagger.model.Parameter;
+import com.wordnik.swagger.model.ResponseMessage;
+
+import scala.Option;
 
 public class ApiOperationParser {
 
@@ -51,6 +59,8 @@ public class ApiOperationParser {
                 final Type type = parameterizedType.getActualTypeArguments()[0];
                 if (type instanceof ParameterizedType) {
                     documentationOperation.setResponseClass((Class<?>) ((ParameterizedType) type).getRawType());
+                } else if (type instanceof WildcardType) {
+                    documentationOperation.setResponseClass(Object.class);
                 } else {
                     documentationOperation.setResponseClass((Class<?>) type);
                 }

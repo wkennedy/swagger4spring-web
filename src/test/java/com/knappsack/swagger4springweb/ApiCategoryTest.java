@@ -35,12 +35,13 @@ public class ApiCategoryTest extends AbstractTest {
     ApiListing darkApiListing = documents.get("/dark");
 
     scala.collection.immutable.List<ApiDescription> dark = darkApiListing.apis();
-    assertEquals("dark colors expected", 3, dark.size());
+    assertEquals("dark colors expected", 4, dark.size());
 
     // Validate alphabetic ordering
     assertTrue("earth should be first", dark.apply(0).path().equals("/api/v1/black/earth"));
-    assertTrue("x-planet should be second", dark.apply(1).path().equals("/api/v1/black/x-planet"));
-    assertTrue("sky should be third", dark.apply(2).path().equals("/api/v1/blue/sky"));
+    assertTrue("wildcard should be second", dark.apply(1).path().equals("/api/v1/black/wildcard"));
+    assertTrue("x-planet should be 3rd", dark.apply(2).path().equals("/api/v1/black/x-planet"));
+    assertTrue("sky should be 4th", dark.apply(3).path().equals("/api/v1/blue/sky"));
 
     assertEquals("This is so dark", darkApiListing.description().get());
 
