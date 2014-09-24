@@ -1,17 +1,18 @@
 package com.knappsack.swagger4springweb.util;
 
-import com.google.common.collect.Lists;
-import com.knappsack.swagger4springweb.model.AnnotatedParameter;
-import com.thoughtworks.paranamer.BytecodeReadingParanamer;
-import com.thoughtworks.paranamer.Paranamer;
-import com.wordnik.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.google.common.collect.Lists;
+import com.knappsack.swagger4springweb.model.AnnotatedParameter;
+import com.thoughtworks.paranamer.BytecodeReadingParanamer;
+import com.thoughtworks.paranamer.Paranamer;
+import com.wordnik.swagger.annotations.ApiParam;
 
 public class AnnotationUtils {
 
@@ -84,4 +85,23 @@ public class AnnotationUtils {
         }
         return annotatedParameters;
     }
+
+
+  public static <T extends Annotation> T getAnnotationAnnotation(Class<T> annotationClass, Class<?> controllerClass) {
+    Annotation[] annotations = controllerClass.getAnnotations();
+    for (Annotation annotation : annotations) {
+      T value = getAnnotation(annotation, annotationClass);
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  private static <T extends Annotation> T getAnnotation(Annotation ann, Class<T> annotationType) {
+    if (annotationType.isInstance(ann)) {
+      return (T) ann;
+    }
+    return ann.annotationType().getAnnotation(annotationType);
+  }
 }

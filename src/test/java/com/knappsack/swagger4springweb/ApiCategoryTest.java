@@ -40,6 +40,8 @@ public class ApiCategoryTest extends AbstractTest {
     assertTrue("x-planet should be second", dark.apply(1).path().equals("/api/v1/black/x-planet"));
     assertTrue("sky should be third", dark.apply(2).path().equals("/api/v1/blue/sky"));
 
+    assertEquals("This is so dark", dark.apply(0).description().get());
+
   }
 
   @Test
