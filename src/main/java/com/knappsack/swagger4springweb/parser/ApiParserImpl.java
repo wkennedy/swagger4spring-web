@@ -40,6 +40,7 @@ import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.ResourceListing;
 
 import scala.Option;
+import scala.Some;
 
 public class ApiParserImpl implements ApiParser {
 
@@ -204,12 +205,31 @@ public class ApiParserImpl implements ApiParser {
         }
         SpringApiReader reader = new SpringApiReader();
         Option<ApiListing> apiListingOption = reader.read(docRoot, controllerClass, swaggerConfig);
+
         ApiListing apiListing = null;
+        Option<String> descriptionOption = null;
+        String categoryValue = null;
+
+        ApiCategory category = AnnotationUtils.getAnnotationAnnotation(ApiCategory.class, controllerClass);
+        String description = null;
+        if (category != null) {
+          categoryValue = category.value();
+          description = category.description();
+          descriptionOption = Some.apply(description);
+        }
+
         if (apiListingOption.nonEmpty()) {
-            apiListing = apiListingOption.get();
+          apiListing = apiListingOption.get();
+          apiListing = ApiListingUtil.changeDescription(apiListing, description);
         }
 
         //Allow for multiple controllers having the same resource path.
+        if (categoryValue != null) {
+          ApiListing existingApiListing = apiListingMap.get(categoryValue);
+          if (existingApiListing != null) {
+            return existingApiListing;
+          }
+        }
         ApiListing existingApiListing = apiListingMap.get(resourcePath);
         if (existingApiListing != null) {
             return existingApiListing;
@@ -220,7 +240,7 @@ public class ApiParserImpl implements ApiParser {
         }
 
         return new ApiListing(apiVersion, swaggerVersion, basePath, resourcePath, null, null, null, null, null, null,
-                null, 0);
+                descriptionOption, 0);
     }
 
     private ApiListing processMethods(Collection<Method> methods, Class<?> controllerClass, ApiListing apiListing, String description) {
