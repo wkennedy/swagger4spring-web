@@ -142,7 +142,8 @@ public class ApiOperationParser {
             return false;
         }
         for (Parameter documentationParameter : documentationOperation.getParameters()) {
-            if (parameter.equals(documentationParameter.name())) {
+            if (parameter.equals(documentationParameter.name()) &&
+                    "path".equals(documentationParameter.paramType())) {
                 return true;
             }
         }
