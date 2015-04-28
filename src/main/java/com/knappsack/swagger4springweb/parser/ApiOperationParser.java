@@ -4,7 +4,7 @@ import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
-import com.wordnik.swagger.converter.ModelConverters;
+import com.wordnik.swagger.converter.CustomModelConverters;
 import com.wordnik.swagger.model.Model;
 import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.Parameter;
@@ -193,7 +193,7 @@ public class ApiOperationParser {
                 return;
             }
 
-            Option<Model> model = ModelConverters.read(responseClass);
+            Option<Model> model = CustomModelConverters.read(responseClass);
             if (model.nonEmpty()) {
                 this.responseClass = model.get().name();
             } else {
@@ -280,7 +280,7 @@ public class ApiOperationParser {
         }
 
         public void setResponseContainer(final Class<?> type) {
-            Option<Model> model = ModelConverters.read(type);
+            Option<Model> model = CustomModelConverters.read(type);
             if (model.nonEmpty()) {
                 setResponseContainer(model.get().name());
             } else {

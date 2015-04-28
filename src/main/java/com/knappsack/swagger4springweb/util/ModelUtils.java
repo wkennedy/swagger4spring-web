@@ -1,6 +1,6 @@
 package com.knappsack.swagger4springweb.util;
 
-import com.wordnik.swagger.converter.ModelConverters;
+import com.wordnik.swagger.converter.CustomModelConverters;
 import com.wordnik.swagger.model.Model;
 import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,7 +66,7 @@ public class ModelUtils {
     }
 
     public static void addModels(final Class<?> clazz, final Map<String, Model> models) {
-        scala.collection.immutable.List<Model> modelOption = ModelConverters.readAll(clazz);
+        scala.collection.immutable.List<Model> modelOption = CustomModelConverters.readAll(clazz);
         scala.collection.Iterator<Model> iterator = modelOption.iterator();
         while (iterator.hasNext()) {
             Model model = iterator.next();
