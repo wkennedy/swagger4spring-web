@@ -1,10 +1,9 @@
 package com.knappsack.swagger4springweb.parser;
 
 import com.knappsack.swagger4springweb.util.JavaToScalaUtil;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import com.wordnik.swagger.annotations.*;
 import com.wordnik.swagger.converter.CustomModelConverters;
+import com.wordnik.swagger.core.ApiValues;
 import com.wordnik.swagger.model.Model;
 import com.wordnik.swagger.model.Operation;
 import com.wordnik.swagger.model.Parameter;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import scala.Option;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -113,7 +113,7 @@ public class ApiOperationParser {
         ApiParameterParser apiParameterParser = new ApiParameterParser(ignorableAnnotations, models);
         List<Parameter> documentationParameters = apiParameterParser.parseApiParametersAndArgumentModels(method);
         documentationOperation.setParameters(documentationParameters);
-        addUnusedPathVariables(documentationOperation, methodRequestMapping.value());
+        addUnusedPathVariables(documentationOperation, methodRequestMapping.value(), method);
 
         return documentationOperation.toScalaOperation();
     }
@@ -125,16 +125,47 @@ public class ApiOperationParser {
         documentationOperation.addResponseMessage(responseMessage);
     }
 
-    private void addUnusedPathVariables(DocumentationOperation documentationOperation, String[] methodPath) {
+    private void addUnusedPathVariables(DocumentationOperation documentationOperation, String[] methodPath,
+                                        Method method) {
         if (ignoreUnusedPathVariables) {
             return;
         }
 
         for (Parameter documentationParameter : new ApiPathParser().getPathParameters(resourcePath, methodPath)) {
             if (!isParameterPresented(documentationOperation, documentationParameter.name())) {
-                documentationOperation.addParameter(documentationParameter);
+                documentationOperation.addParameter(addApiImplicitParams(documentationParameter, method));
             }
         }
+    }
+
+    private Parameter addApiImplicitParams(Parameter documentationParameter, Method method) {
+        Annotation[] annotations = method.getDeclaredAnnotations();
+
+        ApiImplicitParam annotation = getApiImplicitParam(documentationParameter, annotations);
+        if (annotation != null) {
+            return new Parameter(documentationParameter.name(),  Option.apply(annotation.value()), null,
+                    annotation.required(), annotation.allowMultiple(),
+                    annotation.dataType().toLowerCase(), null,
+                    ApiValues.TYPE_PATH(), null);
+        }
+        return documentationParameter;
+    }
+
+    private ApiImplicitParam getApiImplicitParam(Parameter documentationParameter, Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation instanceof ApiImplicitParam
+                    && ((ApiImplicitParam) annotation).name().equalsIgnoreCase(documentationParameter.name())) {
+                return (ApiImplicitParam)annotation;
+           } else if (annotation instanceof ApiImplicitParams) {
+                for (ApiImplicitParam item : ((ApiImplicitParams)annotation).value()) {
+                     if (item.name().equalsIgnoreCase(documentationParameter.name())) {
+                         return item;
+                     }
+                }
+            }
+        }
+
+        return null;
     }
 
     private boolean isParameterPresented(DocumentationOperation documentationOperation, String parameter) {
