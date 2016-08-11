@@ -1,7 +1,7 @@
 package com.knappsack.swagger4springweb.controller;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.knappsack.swagger4springweb.filter.Filter;
 import com.knappsack.swagger4springweb.parser.ApiParser;
 import com.knappsack.swagger4springweb.parser.ApiParserImpl;
@@ -17,13 +17,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping(value = "/api")
 public class ApiDocumentationController {
+
+    public static final String REQUEST_FILTERS = ApiDocumentationController.class.getName() + ".requestFilters";
 
     private String baseControllerPackage = "";
     private List<String> additionalControllerPackages = new ArrayList<String>();
@@ -45,8 +45,8 @@ public class ApiDocumentationController {
     private ApiInfo apiInfo;
     private List<Filter> filters;
 
-    private Map<List<Filter>, Map<String, ApiListing>> documentationCache = Maps.newHashMap();
-    private Map<List<Filter>, ResourceListing> resourceListingCache = Maps.newHashMap();
+    private final Map<Set<Filter>, Map<String, ApiListing>> documentationCache = Maps.newHashMap();
+    private final Map<Set<Filter>, ResourceListing> resourceListingCache = Maps.newHashMap();
 
     @RequestMapping(value = "/resourceList", method = RequestMethod.GET, produces = "application/json")
     public
@@ -99,7 +99,9 @@ public class ApiDocumentationController {
     }
 
     private Map<String, ApiListing> getDocs(HttpServletRequest request) {
-        Map<String, ApiListing> documentation = documentationCache.get(filters);
+        Set<Filter> fullSetOfFilters = mergeFilters(getRequestFilters(request));
+
+        Map<String, ApiListing> documentation = documentationCache.get(fullSetOfFilters);
         if (documentation != null) {
             return documentation;
         }
@@ -109,15 +111,17 @@ public class ApiDocumentationController {
             servletPath = request.getServletPath();
         }
         ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, fullSetOfFilters);
         documentation = apiParser.createApiListings();
-        documentationCache.put(filters != null ? Lists.newArrayList(filters) : null, documentation);
+        documentationCache.put(fullSetOfFilters, documentation);
 
         return documentation;
     }
 
     private ResourceListing getResourceList(HttpServletRequest request) {
-        ResourceListing resourceListing = resourceListingCache.get(filters);
+        Set<Filter> fullSetOfFilters = mergeFilters(getRequestFilters(request));
+
+        ResourceListing resourceListing = resourceListingCache.get(fullSetOfFilters);
         if (resourceListing != null) {
             return resourceListing;
         }
@@ -128,9 +132,9 @@ public class ApiDocumentationController {
             servletPath = servletPath.replace("/resourceList", "");
         }
         ApiParser apiParser = new ApiParserImpl(apiInfo, getControllerPackages(), getBasePath(),
-                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, filters);
+                servletPath, apiVersion, ignorableAnnotations, ignoreUnusedPathVariables, fullSetOfFilters);
         resourceListing = apiParser.getResourceListing(getDocs(request));
-        resourceListingCache.put(filters != null ? Lists.newArrayList(filters) : null, resourceListing);
+        resourceListingCache.put(fullSetOfFilters, resourceListing);
 
         return resourceListing;
     }
@@ -146,6 +150,17 @@ public class ApiDocumentationController {
         }
 
         return controllerPackages;
+    }
+
+    private Set<Filter> mergeFilters(final Collection<Filter> requestFilters) {
+        final Set<Filter> allFilters = Sets.newHashSet();
+        if (filters != null) {
+            allFilters.addAll(filters);
+        }
+        if (requestFilters != null) {
+            allFilters.addAll(requestFilters);
+        }
+        return allFilters;
     }
 
     @SuppressWarnings("unused")
@@ -236,5 +251,13 @@ public class ApiDocumentationController {
     @SuppressWarnings("unused")
     public void setApiVersion(final String apiVersion) {
         this.apiVersion = apiVersion;
+    }
+
+    public static void setRequestFilters(final HttpServletRequest request, final Collection<Filter> requestFilters) {
+        request.setAttribute(REQUEST_FILTERS, requestFilters);
+    }
+
+    public static Collection<Filter> getRequestFilters(final HttpServletRequest request) {
+        return (Collection<Filter>) request.getAttribute(REQUEST_FILTERS);
     }
 }
