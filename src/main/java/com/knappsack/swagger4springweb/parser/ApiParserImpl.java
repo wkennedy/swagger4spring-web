@@ -36,7 +36,7 @@ public class ApiParserImpl implements ApiParser {
 
     public ApiParserImpl(ApiInfo apiInfo, List<String> baseControllerPackage, String basePath, String servletPath,
             String apiVersion, List<String> ignorableAnnotations, boolean ignoreUnusedPathVariables,
-            List<Filter> filters) {
+            Collection<Filter> filters) {
 
         this.controllerPackages = baseControllerPackage;
         this.ignorableAnnotations = ignorableAnnotations;
