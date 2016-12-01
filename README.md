@@ -1,6 +1,8 @@
 swagger4spring-web
 ==================
 
+Please note: This project is no longer actively supported. 
+
 Supports Swagger 1.3 as of version 0.3.0!
 
 This project aims at providing Swagger support to your Spring-Web based application.  It will attempt to document your API based on existing Spring-Web annotations if no Swagger annotations exist.  If Swagger annotations do exist, it will utilize those in conjunction with the Spring-Web annotations.
