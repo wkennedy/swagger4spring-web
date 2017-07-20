@@ -12,7 +12,7 @@
     <groupId>com.knappsack</groupId>
     <artifactId>swagger4spring-web</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.14-SNAPSHOT-ALERTME</version>
+    <version>0.3.15-SNAPSHOT-ALERTME</version>
     <description>Swagger implementation for the Spring-Web framework</description>
     <url>https://github.com/wkennedy/swagger4spring-web</url>
     <licenses>
@@ -43,7 +43,7 @@
         <junit-version>4.9</junit-version>
         <java.version>1.6</java.version>
         <jackson-module-scala_2.10.version>2.3.0</jackson-module-scala_2.10.version>
-        <org.reflections.version>0.9.8</org.reflections.version>
+        <org.reflections.version>0.9.10</org.reflections.version>
     </properties>
 
     <dependencies>

@@ -41,7 +41,6 @@ public class ApiDocumentationControllerTest extends AbstractTest {
         assertNotNull(documentation);
         assertEquals("v1", documentation.apiVersion());
         assertEquals(END_POINT_PATHS.size(), documentation.apis().size());
-        assertEquals("/doc/api/v1/test", documentation.apis().apply(0).path());
 
         for (ApiListingReference endPoint : ScalaToJavaUtil.toJavaList(documentation.apis())) {
             assertTrue(END_POINT_PATHS.contains(endPoint.path()));
