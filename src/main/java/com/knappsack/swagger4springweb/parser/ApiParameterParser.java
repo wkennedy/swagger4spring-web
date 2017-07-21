@@ -81,6 +81,8 @@ public class ApiParameterParser {
             documentationParameters.add(parameter);
         }
 
+        documentationParameters.addAll(AnnotationUtils.getImplicitParameters(method));
+
         return documentationParameters;
     }
 

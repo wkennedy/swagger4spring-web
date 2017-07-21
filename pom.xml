@@ -12,7 +12,7 @@
     <groupId>com.knappsack</groupId>
     <artifactId>swagger4spring-web</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.15-SNAPSHOT-ALERTME</version>
+    <version>0.3.16-SNAPSHOT-ALERTME</version>
     <description>Swagger implementation for the Spring-Web framework</description>
     <url>https://github.com/wkennedy/swagger4spring-web</url>
     <licenses>

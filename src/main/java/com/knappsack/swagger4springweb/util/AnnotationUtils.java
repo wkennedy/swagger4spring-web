@@ -4,12 +4,18 @@ import com.google.common.collect.Lists;
 import com.knappsack.swagger4springweb.model.AnnotatedParameter;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
+import com.wordnik.swagger.annotations.ApiImplicitParam;
+import com.wordnik.swagger.annotations.ApiImplicitParams;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.model.AllowableListValues;
+import com.wordnik.swagger.model.AllowableValues;
+import com.wordnik.swagger.model.Parameter;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import scala.Option;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -95,6 +101,39 @@ public class AnnotationUtils {
         return annotatedParameters;
     }
 
+    /**
+     * @param method
+     *            Method
+     * @return List<Parameter> - if the method is annotated with ApiImplicitParams that contain parameters definitions
+     */
+    public static List<Parameter> getImplicitParameters(Method method) {
+        final List<Parameter> parameters = Lists.newArrayList();
+        final ApiImplicitParams apiImplicitParams = findApiImplicitParams(
+                Lists.newArrayList(method.getDeclaredAnnotations()));
+        if (apiImplicitParams != null) {
+            for (final ApiImplicitParam apiImplicitParam : apiImplicitParams.value()) {
+                parameters.add(new Parameter(apiImplicitParam.name(), Option.apply(apiImplicitParam.value()),
+                        Option.apply(apiImplicitParam.defaultValue()),
+                        apiImplicitParam.required(), apiImplicitParam.allowMultiple(),
+                        getDataType(apiImplicitParam.dataType()), getAllowableValues(apiImplicitParam),
+                        apiImplicitParam.paramType(), Option.apply(apiImplicitParam.access())));
+            }
+        }
+        return parameters;
+    }
+
+    private static String getDataType(String dataType) {
+        return dataType == null ? null : dataType.toLowerCase();
+    }
+
+    private static AllowableValues getAllowableValues(ApiImplicitParam apiImplicitParam) {
+        if (ModelUtils.isSet(apiImplicitParam.allowableValues())) {
+            List<String> allowableValues = Arrays.asList(apiImplicitParam.allowableValues().split("\\s*,\\s*"));
+            return new AllowableListValues(JavaToScalaUtil.toScalaList(allowableValues), "LIST");
+        }
+        return null;
+    }
+
     private static void addModelAttributeParameters(final Class type,
                                                     final List<AnnotatedParameter> annotatedParameters) {
         List<Field> fields = new ArrayList<Field>();
@@ -158,6 +197,15 @@ public class AnnotationUtils {
         for (final Annotation item : annotations) {
             if (item instanceof ApiOperation) {
                 return (ApiOperation) item;
+            }
+        }
+        return null;
+    }
+
+    private static ApiImplicitParams findApiImplicitParams(final List<Annotation> annotations) {
+        for (final Annotation item : annotations) {
+            if (item instanceof ApiImplicitParams) {
+                return (ApiImplicitParams) item;
             }
         }
         return null;
